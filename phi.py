@@ -6,53 +6,52 @@ Created on Thu Oct 29 13:08:02 2015
 
 define activation function for Poisson model
 """
-#
-# ''' here, half-wave rectified quadratic '''
-#
-# def phi(g,gain):
-#
-#     import numpy as np
-#
-#     g_calc = g*1.
-#
-#     thresh = 0.
-#     ind = np.where(g_calc<thresh)
-#     g_calc[ind[0]] = 0.
-#
-#     r_out = gain*(g_calc**2)
-#
-#     return r_out
-#
-# def phi_prime(g,gain):
-#
-#     import numpy as np
-#
-#     g_calc = g*1.
-#     thresh = 0.
-#     ind = np.where(g_calc<thresh)
-#     g_calc[ind[0]] = 0.
-#     phi_pr = gain*2.*g_calc
-#
-#     return phi_pr
-#
-# def phi_prime2(g,gain):
-#
-#     '''
-#     second derivative of phi wrt input
-#     '''
-#
-#     import numpy as np
-#
-#     g_calc = g*1
-#     thresh = 0.
-#     ind = np.where(g_calc<thresh)
-#     ind1 = np.where(g_calc>=thresh)
-#     g_calc[ind[0]] = 0.
-#     g_calc[ind1[0]] = 1.
-#     phi_pr2 = gain*2*g_calc
-#
-#     return phi_pr2
-#
+
+''' here, half-wave rectified quadratic '''
+def phi(g,gain):
+
+    import numpy as np
+
+    g_calc = g*1.
+
+    thresh = 0.
+    ind = np.where(g_calc<thresh)
+    g_calc[ind[0]] = 0.
+
+    r_out = gain*(g_calc**2)
+
+    return r_out
+
+def phi_prime(g,gain):
+
+    import numpy as np
+
+    g_calc = g*1.
+    thresh = 0.
+    ind = np.where(g_calc<thresh)
+    g_calc[ind[0]] = 0.
+    phi_pr = gain*2.*g_calc
+
+    return phi_pr
+
+def phi_prime2(g,gain):
+
+    '''
+    second derivative of phi wrt input
+    '''
+
+    import numpy as np
+
+    g_calc = g*1
+    thresh = 0.
+    ind = np.where(g_calc<thresh)
+    ind1 = np.where(g_calc>=thresh)
+    g_calc[ind[0]] = 0.
+    g_calc[ind1[0]] = 1.
+    phi_pr2 = gain*2*g_calc
+
+    return phi_pr2
+
 # # # #
 # ''' here, half-wave rectified linear '''
 #
@@ -175,98 +174,98 @@ define activation function for Poisson model
 #
 #     return phi_pr2
 #
-
-''' here, linear for E and quadratic for I '''
-
-def phi(g,gain):
-
-    import numpy as np
-    import params
-    reload(params)
-    par = params.params()
-
-    g_calc = g*1.
-
-    thresh = 0.
-    ind = np.where(g_calc < thresh)
-    g_calc[ind[0]] = 0.
-
-    r_out = np.zeros(g_calc.shape)
-    r_out[:par.Ne] = gain*g_calc[:par.Ne]**1
-    r_out[par.Ne:] = gain*g_calc[par.Ne:]**2
-    # r_out = gain*(g_calc**2)
-
-    return r_out
-
-def phi_prime(g,gain):
-
-    import numpy as np
-    import params
-    reload(params)
-    par = params.params()
-
-    g_calc = g*1.
-    thresh = 0.
-    ind = np.where(g_calc < thresh)
-    g_calc[ind[0]] = 0.
-
-    phi_pr = np.zeros(g_calc.shape)
-    phi_pr[:par.Ne] = gain*np.ones(par.Ne)
-    phi_pr[par.Ne:] = gain*2.*g_calc[par.Ne:]
-    phi_pr[ind[0]] = 0.
-
-    return phi_pr
-
-def phi_prime2(g,gain):
-
-    '''
-    second derivative of phi wrt input
-    '''
-
-    import numpy as np
-    import params
-    reload(params)
-    par = params.params()
-
-    g_calc = g*1
-    thresh = 0.
-    ind = np.where(g_calc < thresh)
-    g_calc[ind[0]] = 0.
-
-    phi_pr2 = np.zeros(g_calc.shape)
-    phi_pr2[:par.Ne] = 0.
-    phi_pr2[par.Ne:] = gain*2.*np.ones(par.Ni)
-    phi_pr2[ind[0]] = 0.
-
-    return phi_pr2
-
-
-def phi_pop(g,gain):
-
-    '''
-
-    :param g: 2d (E, I)
-    :param gain: 2d(E, I)
-    :return:
-    '''
-
-    import numpy as np
-    import params
-    reload(params)
-    par = params.params()
-
-    g_calc = g*1.
-
-    thresh = 0.
-    ind = np.where(g_calc < thresh)
-    g_calc[ind[0]] = 0.
-
-    r_out = np.zeros(g_calc.shape)
-    r_out[0] = gain*g_calc[0]**1
-    r_out[1] = gain*g_calc[1]**2
-    # r_out = gain*(g_calc**2)
-
-    return r_out
+#
+# ''' here, linear for E and quadratic for I '''
+#
+# def phi(g,gain):
+#
+#     import numpy as np
+#     import params
+#     reload(params)
+#     par = params.params()
+#
+#     g_calc = g*1.
+#
+#     thresh = 0.
+#     ind = np.where(g_calc < thresh)
+#     g_calc[ind[0]] = 0.
+#
+#     r_out = np.zeros(g_calc.shape)
+#     r_out[:par.Ne] = gain*g_calc[:par.Ne]**1
+#     r_out[par.Ne:] = gain*g_calc[par.Ne:]**2
+#     # r_out = gain*(g_calc**2)
+#
+#     return r_out
+#
+# def phi_prime(g,gain):
+#
+#     import numpy as np
+#     import params
+#     reload(params)
+#     par = params.params()
+#
+#     g_calc = g*1.
+#     thresh = 0.
+#     ind = np.where(g_calc < thresh)
+#     g_calc[ind[0]] = 0.
+#
+#     phi_pr = np.zeros(g_calc.shape)
+#     phi_pr[:par.Ne] = gain*np.ones(par.Ne)
+#     phi_pr[par.Ne:] = gain*2.*g_calc[par.Ne:]
+#     phi_pr[ind[0]] = 0.
+#
+#     return phi_pr
+#
+# def phi_prime2(g,gain):
+#
+#     '''
+#     second derivative of phi wrt input
+#     '''
+#
+#     import numpy as np
+#     import params
+#     reload(params)
+#     par = params.params()
+#
+#     g_calc = g*1
+#     thresh = 0.
+#     ind = np.where(g_calc < thresh)
+#     g_calc[ind[0]] = 0.
+#
+#     phi_pr2 = np.zeros(g_calc.shape)
+#     phi_pr2[:par.Ne] = 0.
+#     phi_pr2[par.Ne:] = gain*2.*np.ones(par.Ni)
+#     phi_pr2[ind[0]] = 0.
+#
+#     return phi_pr2
+#
+#
+# def phi_pop(g,gain):
+#
+#     '''
+#
+#     :param g: 2d (E, I)
+#     :param gain: 2d(E, I)
+#     :return:
+#     '''
+#
+#     import numpy as np
+#     import params
+#     reload(params)
+#     par = params.params()
+#
+#     g_calc = g*1.
+#
+#     thresh = 0.
+#     ind = np.where(g_calc < thresh)
+#     g_calc[ind[0]] = 0.
+#
+#     r_out = np.zeros(g_calc.shape)
+#     r_out[0] = gain*g_calc[0]**1
+#     r_out[1] = gain*g_calc[1]**2
+#     # r_out = gain*(g_calc**2)
+#
+#     return r_out
 
 # #
 # ''' here, quadratic for E and linear for I '''
@@ -350,7 +349,7 @@ def phi_pop(g,gain):
 #
 #     g_calc = g*1.
 #
-#     thresh = 0.
+#     thresh = 0.from theory import rates_ss
 #     ind = np.where(g_calc < thresh)
 #     g_calc[ind[0]] = 0.
 #

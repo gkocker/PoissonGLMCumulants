@@ -4,8 +4,22 @@ Created on Tue Nov  3 16:05:02 2015
 
 @author: gabeo
 
-compute covariance of spike trains,
+has functions to:
+bin spiketrains from spktimes array (list of spike times / neuron indices)
+compute various cumulant functions of spike trains
 
+good functions:
+bin_spiketrain
+bin_pop_spiketrain
+auto_covariance_pop
+count_dist
+cross_covariance_spk
+triplet_covariance_spk
+
+test functions (haven't used these in some time, don't remember if they work right or not):
+triplet_covariance_tot
+cross_covariance_tot
+cross_spectrum
 """ 
     
 def bin_spiketrain(spktimes,neuronind,dt,dt_ccg,tstop,trans):
@@ -45,6 +59,7 @@ def bin_pop_spiketrain(spktimes,dt,dt_ccg,tstop,trans,ind_include):
     
     return spk_pop
 
+
 def auto_covariance_pop(spktimes,ind_include,numspikes,dt,lags,tau,tstop,trans):
 
     import numpy as np
@@ -75,6 +90,7 @@ def auto_covariance_pop(spktimes,ind_include,numspikes,dt,lags,tau,tstop,trans):
     
     return auto_cov
 
+
 def count_dist(spk,dt_ccg,tstop,win):
     
     """
@@ -98,6 +114,7 @@ def count_dist(spk,dt_ccg,tstop,win):
         count[i] = sum(spk[i*win/2:(i+2)*win/2])
         
     return count
+
 
 def cross_covariance_spk(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     ### another method: create binary spike trains at inputed dt, compute correlation function with numpy.correlate
@@ -133,7 +150,8 @@ def cross_covariance_spk(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     
     
     return xcov
-    
+
+
 def triplet_covariance_spk(spktimes,numspikes,ind1,ind2,ind3,dt,lags,tau,tstop,trans):
     '''
     compute three-point function for a range of time lags
@@ -179,7 +197,8 @@ def triplet_covariance_spk(spktimes,numspikes,ind1,ind2,ind3,dt,lags,tau,tstop,t
             xcov3[i+maxlag, j+maxlag] = np.sum(spk1*spk2_calc*spk3_calc)/(Nt-np.abs(i))
     
     return xcov3
-                    
+
+
 def triplet_covariance_tot(spktimes,numspikes,ind1,ind2,ind3,dt,lags,tau,tstop,trans):
     
     '''compute integral of three-point function over s1 and s2 by evaluating bispectrum at 0,0 '''
@@ -217,6 +236,7 @@ def triplet_covariance_tot(spktimes,numspikes,ind1,ind2,ind3,dt,lags,tau,tstop,t
     
     return cov3_tot
 
+
 def cross_covariance_tot(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     
     import numpy as np
@@ -244,7 +264,8 @@ def cross_covariance_tot(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     freq, cross_spec = signal.csd(spk1, spk2, fs=1./dt_ccg, window = 'hanning', scaling = 'density', return_onesided=False)
     xcov_tot = cross_spec[0]
     return xcov_tot
-    
+
+
 def cross_spectrum(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     import numpy as np
     import math   

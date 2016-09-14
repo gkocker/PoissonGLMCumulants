@@ -7,17 +7,15 @@ Created on Wed Nov  4 09:01:41 2015
 
 import math
 import numpy as np
-
+from phi import phi, phi_prime, phi_prime2
+import params; reload(params)
 
 def rates_ss(W): # set inputs here
 
-    """
-    Inputs:
-    W, weight matrix
-    """
-
-    from phi import phi
-    import params; reload(params)
+    '''
+    :param W: weight matrix
+    :return: steady-state rates with transfer functions and cellular/synaptic parameters defined in params.py and phi.py
+    '''
     
     par = params.params()
     b = par.b
@@ -42,15 +40,6 @@ def rates_ss(W): # set inputs here
         g = W.dot(s) + b
         r = phi(g, gain)
         r_vec[:, i] = r
-
-    # r = phi(b, gain)
-    # # r = np.zeros(N)
-    # r_vec = np.zeros((N, Tmax))
-    #
-    # for i in range(Tmax):
-    #     g = W.dot(r) + b
-    #     r = phi(g, gain)
-    #     r_vec[:, i] = r
 
     return r
 
@@ -106,10 +95,7 @@ def two_point_function_fourier(W):
     calculate tree-level prediction for two-point function in fluctuation expansion
     inputs: weight matrix
     leave out factors of two pi that come with delta functions because we have an implicit inverse fourier transform from one of the frequencies that is left out because we are dealing only with stationary processes
-    """    
-
-    import params; reload(params)
-    from phi import phi_prime
+    """
     
     par = params.params()
     N = par.N   
@@ -141,19 +127,12 @@ def two_point_function_fourier(W):
     return C2f, w
 
 
-
 def two_point_function_fourier_1loop(W):
 
     """
     inputs: weight matrix
     calculate one-loop correction for two-point function in fluctuation expansion
-    """    
-    
-    import numpy as np
-    import math
-    import params; reload(params)
-    from phi import phi_prime
-    from phi import phi_prime2
+    """
     
     par = params.params()
     N = par.N   
@@ -211,17 +190,11 @@ def two_point_function_fourier_1loop(W):
     return C2f, w
 
 
-
 def three_point_function_fourier_Yu(W):
     
     '''
-    adapted from Yu Hu's matlab scripts to include rate functions that aren't unity
-    '''    
-    
-    import numpy as np
-    import math
-    import params; reload(params)
-    from phi import phi_prime
+    adapted from Yu Hu's matlab scripts to include rate functions that have gain != 1
+    '''
     
     from tensor_prods import tensor_aaa_d
     from tensor_prods import tensor_M_T    
@@ -293,10 +266,6 @@ def g_fun(w):
     
 def linear_response_fun(w, W, phi_r):
     
-    import params; reload(params)
-    import numpy as np    
-    from phi import phi_prime
-    
     par = params.params()
     N = par.N
 
@@ -316,11 +285,6 @@ def linear_response_1loop(w, W, phi_r):
     :return: propagator matrix
     '''
 
-    import params; reload(params)
-    import numpy as np
-    import math
-    from phi import phi_prime
-    from phi import phi_prime2
 
     par = params.params()
 
@@ -367,11 +331,6 @@ def stability_matrix_1loop(w, W, phi_r):
     :param phi_r: firing rates
     :return:
     '''
-    import params; reload(params)
-    import numpy as np
-    import math
-    from phi import phi_prime
-    from phi import phi_prime2
 
     par = params.params()
 
@@ -407,6 +366,7 @@ def stability_matrix_1loop(w, W, phi_r):
 
     return stab_1loop
 
+
 def two_point_function_fourier_pop(W, ind_pop):
     '''
     calculate tree-level two-point function of the summed spike train of neurons in ind_pop
@@ -414,12 +374,6 @@ def two_point_function_fourier_pop(W, ind_pop):
     :param ind_pop: neurons to sum over
     :return: fourier transform of the population two-point function
     '''
-
-
-    import numpy as np
-    import math
-    import params; reload(params)
-    from phi import phi_prime
     
     par = params.params()
     N = par.N   
@@ -450,19 +404,14 @@ def two_point_function_fourier_pop(W, ind_pop):
         C2f[o] = np.dot(F1_pop, np.dot(F1_pop.conj().T, phi_r_diag))
     
     return C2f
-    
+
+
 def two_point_function_fourier_pop_1loop(W, ind_pop):
     """
     inputs: weight matrix, indices of neurons to sum over
     calculate one-loop correction for two-point function in fluctuation expansion
     this is for the two-point function of the summed spike train of neurons in ind_pop
-    """    
-        
-    import numpy as np
-    import math
-    import params; reload(params)
-    from phi import phi_prime
-    from phi import phi_prime2
+    """
     
     par = params.params()
     N = par.N   
@@ -496,7 +445,6 @@ def two_point_function_fourier_pop_1loop(W, ind_pop):
     Fbarsum2_int_conj = np.zeros((N, len(ind_pop), Nw), dtype=complex)
 
     C2f = np.zeros((Nw,), dtype=complex)  # fourier transform of stationary cross-covariance matrix
-
 
     for o1 in range(Nw):
         F1 = linear_response_fun(w[o1], np.dot(phi_1, W), phi_r)
@@ -532,6 +480,5 @@ def two_point_function_fourier_pop_1loop(W, ind_pop):
         C2f[o] += np.dot(F1_pop.conj(), F1loop_pop) / (2*math.pi)**0
         C2f[o] += np.dot(F1_pop, Fbarsum2_int[:, o])
         C2f[o] += np.dot(F1_pop.conj(), Fbarsum2_int_conj[:, o])
-
 
     return C2f
