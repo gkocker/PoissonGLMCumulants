@@ -52,6 +52,34 @@ def phi_prime2(g,gain):
 
     return phi_pr2
 
+
+def phi_pop(g,gain):
+
+    '''
+
+    :param g: 2d (E, I)
+    :param gain: 2d(E, I)
+    :return:
+    '''
+
+    import numpy as np
+    import params
+    reload(params)
+    par = params.params()
+
+    g_calc = g*1.
+
+    thresh = 0.
+    ind = np.where(g_calc < thresh)
+    g_calc[ind[0]] = 0.
+
+    r_out = np.zeros(g_calc.shape)
+    r_out[0] = gain*g_calc[0]**2
+    r_out[1] = gain*g_calc[1]**2
+    # r_out = gain*(g_calc**2)
+
+    return r_out
+
 # # # #
 # ''' here, half-wave rectified linear '''
 #

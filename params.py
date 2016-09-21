@@ -40,10 +40,10 @@ class params:
         self.gain = .1 # gain of threshold-linear input-output function
         self.b = np.zeros((self.N,))
 
-        self.b[self.N_ff:] = 0.1
+        # self.b[self.N_ff:] = 0.1
 
-        # self.b[self.N_ff:self.Ne] = 0.1  # if E cells have threshold-linear transfer
-        # self.b[self.Ne:self.N] = 0.1**.5  # if I cells have threshold-quadratic nonlinearity
+        self.b[self.N_ff:self.Ne] = 0.1  # if E cells have threshold-linear transfer
+        self.b[self.Ne:self.N] = 0.15  # if I cells have threshold-quadratic nonlinearity
 
         self.b[:self.N_ff/2] = 0.1  # stim 2, nonlinear for coding fig
         # self.b[self.N_ff/2:self.N_ff] = 0.1  # stim 1, nonlinear for coding fig

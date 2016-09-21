@@ -71,7 +71,7 @@ def sim_poisson(W, tstop, trans, dt):
         except:
             break
 
-        s_dummy += spiket*a2
+        s_dummy += spiket*a2  # a2 for alpha function normalized to have unit integral
     
         ### store spike times and counts
         if t > trans:
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
     dt_ccg = 1.  # ms
     lags = np.arange(-10.*tau, 10.*tau, dt_ccg)
-    pop_2point = auto_covariance_pop(spktimes, ind_include, numspikes, dt, lags, tau, tstop, trans):
+    pop_2point = auto_covariance_pop(spktimes, ind_include, numspikes, dt, lags, tau, tstop, trans)
 
 
 
