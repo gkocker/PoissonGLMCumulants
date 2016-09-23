@@ -9,7 +9,7 @@ import sim_poisson
 import numpy as np
 import matplotlib.pyplot as plt
 from correlation_functions import bin_pop_spiketrain
-from phi import phi_pop
+from phi import phi
 from theory import rates_ss
 
 from scipy.ndimage.filters import gaussian_filter
@@ -52,7 +52,7 @@ def bisection_WC(left, right, rE, rI, weights, ref):
     weightIE = weights[2]
     weightII = weights[3]
 
-    ''' bisection for rI, freezing rE '''
+    ''' bisection for drI, freezing rE '''
     it = 0
     while it < max_its:
 
@@ -62,16 +62,16 @@ def bisection_WC(left, right, rE, rI, weights, ref):
 
         g = [weightEE * rE + weightEI * left + np.mean(b[:Ne]), weightIE * rE + weightII * left + np.mean(b[Ne:])]
         g = np.array(g)
-        drI_left = -left + (1. - ref*left) * phi_pop(g, gain)[1]
+        drI_left = -left + (1. - ref*left) * phi(g, gain)[1]
 
         g = [weightEE * rE + weightEI * right + np.mean(b[:Ne]), weightIE * rE + weightII * right + np.mean(b[Ne:])]
         g = np.array(g)
-        drI_right = -right + (1. - ref*right) * phi_pop(g, gain)[1]
+        drI_right = -right + (1. - ref*right) * phi(g, gain)[1]
 
         mid = (left+right)/2.
         g = [weightEE * rE + weightEI * mid + np.mean(b[:Ne]), weightIE * rE + weightII * mid + np.mean(b[Ne:])]
         g = np.array(g)
-        drI_mid = -mid + (1. - ref*mid) * phi_pop(g, gain)[1]
+        drI_mid = -mid + (1. - ref*mid) * phi(g, gain)[1]
 
         # if (~np.any(np.array([drI_left, drI_right]) < 0.) or ~np.any(np.array([drI_left, drI_right]) > 0.)):
         #     # raise Exception('need wider initial range for bisection of rI')
@@ -89,7 +89,7 @@ def bisection_WC(left, right, rE, rI, weights, ref):
 
     drI_null = mid*1.
 
-    ''' bisection for rE, freezing rI '''
+    ''' bisection for drE, freezing rI '''
     left = left0*1.  # reset initial endpoints
     right = right0*1.
     it = 0
@@ -101,16 +101,16 @@ def bisection_WC(left, right, rE, rI, weights, ref):
 
         g = [weightEE * left + weightEI * rI + np.mean(b[:Ne]), weightIE * left + weightII * rI + np.mean(b[Ne:])]
         g = np.array(g)
-        drE_left = -left + (1. - ref*left) * phi_pop(g, gain)[0]
+        drE_left = -left + (1. - ref*left) * phi(g, gain)[0]
 
         g = [weightEE * right + weightEI * rI + np.mean(b[:Ne]), weightIE * right + weightII * rI + np.mean(b[Ne:])]
         g = np.array(g)
-        drE_right = -right + (1. - ref*right) * phi_pop(g, gain)[0]
+        drE_right = -right + (1. - ref*right) * phi(g, gain)[0]
 
         mid = (left + right) / 2.
         g = [weightEE * mid + weightEI * rI + np.mean(b[:Ne]), weightIE * mid + weightII * rI + np.mean(b[Ne:])]
         g = np.array(g)
-        drE_mid = -mid + (1. - ref*mid) * phi_pop(g, gain)[0]
+        drE_mid = -mid + (1. - ref*mid) * phi(g, gain)[0]
 
         # if (~np.any(np.array([drE_left, drE_right]) < 0.) or ~np.any(np.array([drE_left, drE_right]) > 0.)):
             # raise Exception('need wider initial range for bisection of rE')
@@ -130,6 +130,64 @@ def bisection_WC(left, right, rE, rI, weights, ref):
     drE_null = mid
 
     return drE_null, drI_null
+
+
+def euler_WCnullcline(rE0, weights, ref):
+    '''
+    find intersection of r/(1-r) and phi(r)
+    :param rE0:
+    :param rI0:
+    :param weights:
+    :param ref:
+    :return:
+    '''
+
+    par = params.params()
+    Ne = par.Ne
+    Ni = par.Ni
+    pEE = par.pEE
+    pEI = par.pEI
+    pIE = par.pIE
+    pII = par.pII
+    tau = par.tau
+    b = par.b
+    gain = par.gain
+
+    weightEE = weights[0]
+    weightEI = weights[1]
+    weightIE = weights[2]
+    weightII = weights[3]
+
+    dt = .02*tau
+    Tmax = int(50*tau / dt)
+
+    r = np.zeros(2)
+    r[0] = rE0
+    r_vec = np.zeros((2, Tmax))
+
+    for i in range(Tmax):
+
+        g = np.array([weightEE * r[0] + weightEI * r[1] + np.mean(b[:Ne]), weightIE * r[0] + weightII * r[1] + np.mean(b[Ne:])])
+        r[1] += dt*(-r[1] + (1-r[1])*phi(g, gain)[1])
+        r_vec[:, i] = r
+
+    rI_null = r[1]
+
+    r = np.zeros(2)
+    r[0] = rE0
+    r_vec = np.zeros((2, Tmax))
+
+    for i in range(Tmax):
+
+        g = np.array([weightEE * rE0 + weightEI * r[1] + np.mean(b[:Ne]), weightIE * rE0 + weightII * r[1] + np.mean(b[Ne:])])
+        r[0] += dt*(-r[0] + (1-r[0])*phi(g, gain)[0])
+        r[1] += dt*(-r[1] + (1-r[1])*phi(g, gain)[1])
+        r_vec[:, i] = r
+
+    rE_null = r[1]
+
+    return rE_null, rI_null
+
 
 
 def main(syn_scaleE=5., syn_scaleI=2.236):
@@ -153,8 +211,8 @@ def main(syn_scaleE=5., syn_scaleI=2.236):
     weightII = par.weightII
 
     ''' set save directory '''
-    if sys.platform == 'darwin': save_dir = '/Users/gocker/Documents/projects/structure_driven_activity/1loop_Ne=200_quadraticforIonly_b=0.1_forall/'
-    elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_quadraticforIonly_b=0.1_forall/'
+    if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic_high_bias_I/'
+    elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_quadratic_high_bias_I/'
 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
@@ -195,7 +253,7 @@ def main(syn_scaleE=5., syn_scaleI=2.236):
     weightII *= syn_scaleI*pII*Ni
 
     Nvec = 20
-    r_max = 2000. / 1000.  # sp/ms
+    r_max = .5  # sp/ms
     r_vec = np.linspace(0, r_max, Nvec)
     r_meshE, r_meshI = np.meshgrid(r_vec, r_vec)
     drE_dt = np.zeros((Nvec, Nvec))
@@ -219,37 +277,39 @@ def main(syn_scaleE=5., syn_scaleI=2.236):
             rI = r_vec[i]
             g = [weightEE*rE + weightEI*rI + np.mean(b[:Ne]), weightIE*rE + weightII*rI + np.mean(b[Ne:])]
             g = np.array(g)
-            drE_dt[i, j] = -rE + (1. - ref*rE) * phi_pop(g, gain)[0]
-            drI_dt[i, j] = -rI + (1. - ref*rI) * phi_pop(g, gain)[1]
+            drE_dt[i, j] = -rE + (1. - ref*rE) * phi(g, gain)[0]
+            drI_dt[i, j] = -rI + (1. - ref*rI) * phi(g, gain)[1]
 
     fig, ax = plt.subplots(1, figsize=(4, 3))
-    ax.quiver(r_meshE, r_meshI, drE_dt, drI_dt, angles='xy')
+    ax.quiver(r_meshE, r_meshI, drE_dt, drI_dt)
     # ax.quiver(r_meshE, r_meshI, drE_dt / np.sqrt(drE_dt**2 + drI_dt**2), drI_dt / np.sqrt(drE_dt**2 + drI_dt**2))
 
     ''' compute nullclines'''
     print 'computing nullclines'
     weights = np.array([weightEE, weightEI, weightIE, weightII])
+    # for i in range(Nnull):
+    #     drE_null_i, drI_null_i = bisection_WC(-1e-6, 1e-6, r_null[i], r_null[i], weights, ref)  # find branches including zero
+    #     drE_null[i] = drE_null_i
+    #     drI_null[i] = drI_null_i
+    #
+    #     drE_null_i, drI_null_i = bisection_WC(1e-6, r_max, r_null[i], r_null[i], weights, ref)  # find branches including zero
+    #     drE_null_pos[i] = drE_null_i
+    #     drI_null_pos[i] = drI_null_i
     for i in range(Nnull):
-        # drE_null_i, drI_null_i = bisection_WC(0., 1e-6, r_null[i], r_null[i], weights, ref)  # find branches including zero
-        # drE_null[i] = drE_null_i
-        # drI_null[i] = drI_null_i
+        drE_null[i], drI_null[i] = euler_WCnullcline(r_null[i], weights, ref=1.)
 
-        drE_null_i, drI_null_i = bisection_WC(1e-6, r_max, r_null[i], r_null[i], weights, ref)  # find branches including zero
-        drE_null_pos[i] = drE_null_i
-        drI_null_pos[i] = drI_null_i
-
-    # ax.plot(drE_null, r_null, 'b', drE_null_pos, r_null, 'b', linewidth=2)
+    ax.plot(r_null, drE_null, 'b', drE_null_pos, r_null, 'b', linewidth=2)
     ax.plot(r_null, drI_null, 'r', r_null, drI_null_pos, 'r', linewidth=2)
 
     ''' when E input is below threshold'''
     ax.plot(np.zeros(len(r_null[r_null > b[0]/(-weightEI)])), r_null[r_null > b[0]/(-weightEI)], 'b', linewidth=2)
 
-    ''' when E input is above threshold '''
-    det = (1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null))**2 - 4*syn_scaleE*(2*syn_scaleE*r_null-b[0])
-    mask = det >= 0.
-    drE_null1 = (-(1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null[mask])) + np.sqrt(det[mask])) /(2.*syn_scaleE)
-    drE_null2 = (-(1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null[mask])) - np.sqrt(det[mask])) /(2.*syn_scaleE)
-    ax.plot(drE_null1, r_null[mask], 'b', drE_null2, r_null[mask], 'b', linewidth=2)
+    ''' when E input is above threshold for threshold-linear transfer '''
+    # det = (1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null))**2 - 4*syn_scaleE*(2*syn_scaleE*r_null-b[0])
+    # mask = det >= 0.
+    # drE_null1 = (-(1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null[mask])) + np.sqrt(det[mask])) /(2.*syn_scaleE)
+    # drE_null2 = (-(1./gain+(b[0]-syn_scaleE-2*syn_scaleE*r_null[mask])) - np.sqrt(det[mask])) /(2.*syn_scaleE)
+    # ax.plot(drE_null1, r_null[mask], 'b', drE_null2, r_null[mask], 'b', linewidth=2)
 
     ax.set_xlabel(r'$r_E$')
     ax.set_ylabel(r'$r_I$')
@@ -257,7 +317,6 @@ def main(syn_scaleE=5., syn_scaleI=2.236):
     ax.set_title(r'$W_{EE} = $'+str(weightEE/Ne/pEE))
     ax.set_xlim((-.001, r_max))
     ax.set_ylim((-.001, r_max))
-
 
 
     print 'running sims'
@@ -273,7 +332,10 @@ def main(syn_scaleE=5., syn_scaleI=2.236):
     ax.plot(r_Epop, r_Ipop, 'b', linewidth=0.2)
 
     print r'$W_{EE}=$'+str(weightEE/Ne/pEE)
-    plt.show(fig)
+
+    savefile = os.path.join(save_dir, 'phase_scale='+str(syn_scaleE)+'.pdf')
+    fig.savefig(savefile)
+    plt.close(fig)
 
 
 if __name__ == '__main__':

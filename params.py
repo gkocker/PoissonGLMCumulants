@@ -42,14 +42,8 @@ class params:
 
         # self.b[self.N_ff:] = 0.1
 
-        self.b[self.N_ff:self.Ne] = 0.1  # if E cells have threshold-linear transfer
-        self.b[self.Ne:self.N] = 0.15  # if I cells have threshold-quadratic nonlinearity
-
-        self.b[:self.N_ff/2] = 0.1  # stim 2, nonlinear for coding fig
-        # self.b[self.N_ff/2:self.N_ff] = 0.1  # stim 1, nonlinear for coding fig
-
-        # self.b[:self.N_ff/2] = 0.1**2  # stim 2, linear for coding fig
-        # self.b[self.N_ff/2:self.N_ff] = 0.1**2  # stim 1, linear for coding fig
+        self.b[self.N_ff:self.Ne] = .1  # if E cells have threshold-linear transfer
+        self.b[self.Ne:] = 0.2
 
         #  triplet plasticity parameters
         # self.b = .1*np.ones((self.N,)) # external input

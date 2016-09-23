@@ -6,11 +6,31 @@ Created on Thu Oct 29 13:08:02 2015
 
 define activation function for Poisson model
 """
+import numpy as np
+
+
+
+# #  softmax - smooth linear rectifier
+#
+# ''' here, log (1+e^(x)) '''
+# def phi(g,gain):
+#
+#     gain = float(gain)
+#     return gain*np.log(1+np.exp(g/gain))
+#
+# def phi_prime(g,gain):
+#
+#     gain = float(gain)
+#     return 1. / (np.exp(-g/gain) + 1)
+#
+# def phi_prime2(g,gain):
+#
+#     gain = float(gain)
+#     return np.exp(-g/gain) / (gain*(1+np.exp(-g/gain))**2)
+
 
 ''' here, half-wave rectified quadratic '''
 def phi(g,gain):
-
-    import numpy as np
 
     g_calc = g*1.
 
@@ -23,8 +43,6 @@ def phi(g,gain):
     return r_out
 
 def phi_prime(g,gain):
-
-    import numpy as np
 
     g_calc = g*1.
     thresh = 0.
@@ -40,7 +58,7 @@ def phi_prime2(g,gain):
     second derivative of phi wrt input
     '''
 
-    import numpy as np
+
 
     g_calc = g*1
     thresh = 0.
@@ -62,7 +80,7 @@ def phi_pop(g,gain):
     :return:
     '''
 
-    import numpy as np
+
     import params
     reload(params)
     par = params.params()
@@ -88,7 +106,7 @@ def phi_pop(g,gain):
 #    voltage-rate transfer
 #    '''
 #
-#    import numpy as np
+#    
 #
 #    g_calc = g*1
 #
@@ -103,7 +121,7 @@ def phi_pop(g,gain):
 #
 # def phi_prime(g,gain):
 #
-#    import numpy as np
+#    
 #
 #    g_calc = g*1
 #    ind = np.where(g_calc<0)[0]
@@ -120,7 +138,7 @@ def phi_pop(g,gain):
 #    second derivative of phi wrt input
 #    '''
 #
-#    import numpy as np
+#    
 #
 #    g_calc = g*1
 #    thresh = 0.
@@ -135,7 +153,7 @@ def phi_pop(g,gain):
 #
 # def phi(g, gain):
 #
-#     import numpy as np
+#     
 #
 #     # g_calc = g*1.
 #
@@ -158,7 +176,7 @@ def phi_pop(g,gain):
 #
 # def phi_prime(g, gain):
 #
-#     import numpy as np
+#     
 #
 #     g_calc = g*1.
 #     thresh = 0.
@@ -183,7 +201,7 @@ def phi_pop(g,gain):
 #     second derivative of phi wrt input
 #     '''
 #
-#     import numpy as np
+#     
 #
 #     g_calc = g*1
 #     thresh = 0.
@@ -207,7 +225,7 @@ def phi_pop(g,gain):
 #
 # def phi(g,gain):
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -227,7 +245,7 @@ def phi_pop(g,gain):
 #
 # def phi_prime(g,gain):
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -250,7 +268,7 @@ def phi_pop(g,gain):
 #     second derivative of phi wrt input
 #     '''
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -277,7 +295,7 @@ def phi_pop(g,gain):
 #     :return:
 #     '''
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -300,7 +318,7 @@ def phi_pop(g,gain):
 #
 # def phi(g,gain):
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -320,7 +338,7 @@ def phi_pop(g,gain):
 #
 # def phi_prime(g,gain):
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -343,7 +361,7 @@ def phi_pop(g,gain):
 #     second derivative of phi wrt input
 #     '''
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()
@@ -370,7 +388,7 @@ def phi_pop(g,gain):
 #     :return:
 #     '''
 #
-#     import numpy as np
+#     
 #     import params
 #     reload(params)
 #     par = params.params()

@@ -64,7 +64,7 @@ weightII = par.weightII
 
 Ntrials = 1
 
-tstop = 1000. * tau
+tstop = 60. * tau
 Ncalc = 3
 
 dt = .02 * tau
@@ -80,8 +80,8 @@ syn_scale = np.array((1., 60.))
 
 
 ''' set save directory '''
-if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/structure_driven_activity/1loop_Ne=200_quadratic_transfer/'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_quadratic_transfer/'
+if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_softplus/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_softplus/'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -190,7 +190,7 @@ ax3.set_title('Strong synapses')
 # two_point_integral_sim = np.load(savefile)
 
 ''' compute stability '''
-Ncalc = 40  # 3 for rasters
+Ncalc = 10  # 3 for rasters
 
 tstop = 4000. * tau
 dt = .02 * tau
@@ -247,21 +247,21 @@ for nn in range(Ncalc):
     spec_rad[nn] = max(abs(np.linalg.eigvals(stab_mat_mft)))
     spec_rad_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft - stab_mat_1loop)))
 
-    two_point_integral_theory[nn] = np.real(two_point_function_fourier_pop(W)[0])
-    two_point_integral_1loop[nn] = np.real(two_point_function_fourier_pop_1loop(W)[0])
+    two_point_integral_theory[nn] = np.real(two_point_function_fourier_pop(W, range(Ne))[0])
+    two_point_integral_1loop[nn] = np.real(two_point_function_fourier_pop_1loop(W, range(Ne))[0])
 
     spktimes, g_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
     spktimes[:, 0] -= trans
 
-    ind_include = range(1, Ne)
+    ind_include = range(Ne)
     spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
     rE_av_sim[nn] = np.sum(spk_Epop) / float(tstop-trans) / float(len(ind_include))
 
-    two_point_pop_sim[nn, :] = auto_covariance_pop(spktimes, range(0, N), spktimes.shape[0], dt, lags, tau,
+    two_point_pop_sim[nn, :] = auto_covariance_pop(spktimes, range(Ne), spktimes.shape[0], dt, lags, tau,
                                                        tstop, trans)
     two_point_integral_sim[nn] = np.sum(two_point_pop_sim[nn, :]) * 1
 
-Nstab = 38
+Nstab = Ncalc
 fac10 = np.floor(np.log10(1.5*np.amax(rE_av_theory[:Nstab]+rE_av_1loop[:Nstab]))).astype(int)
 
 rE_av_sim *= 1000
@@ -311,6 +311,7 @@ for ax in [ax1, ax2, ax3, ax4, ax5, ax6]:
 ax4.set_xticklabels('')
 ax5.set_xticklabels('')
 
-savefile = '/local1/Documents/projects/structure_driven_activity/Fig_instab_quadrati1.eps'
+# savefile = '/local1/Documents/projects/structure_driven_activity/Fig_instab_quadrati1.eps'
+savefile = os.path.join(save_dir, 'fig_instab.pdf')
 plt.savefig(savefile)
 plt.show()
