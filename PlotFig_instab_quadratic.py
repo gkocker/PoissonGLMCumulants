@@ -64,7 +64,7 @@ weightII = par.weightII
 
 Ntrials = 1
 
-tstop = 60. * tau
+tstop = 100. * tau
 Ncalc = 3
 
 dt = .02 * tau
