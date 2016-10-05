@@ -64,10 +64,10 @@ weightII = par.weightII
 
 Ntrials = 1
 
-tstop = 100. * tau
+tstop = 600. * tau
 Ncalc = 3
 
-dt = .02 * tau
+dt = .002 * tau
 trans = 5. * tau
 window = tstop
 Tmax = 8 * tau
@@ -75,12 +75,12 @@ dt_ccg = 1
 lags = np.arange(-Tmax, Tmax, dt_ccg)
 
 # syn_scale = np.array((1., 57.)) # for quadratic, was 75
-syn_scale = np.array((1., 60.))
+syn_scale = np.array((1., 40.))
 # syn_scale = np.array((0., 1., 12.))  # for linear
 
 
 ''' set save directory '''
-if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_softplus/'
+if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic/'
 elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_softplus/'
 
 if not os.path.exists(save_dir):
@@ -312,6 +312,6 @@ ax4.set_xticklabels('')
 ax5.set_xticklabels('')
 
 # savefile = '/local1/Documents/projects/structure_driven_activity/Fig_instab_quadrati1.eps'
-savefile = os.path.join(save_dir, 'fig_instab.pdf')
+savefile = os.path.join(save_dir, 'fig_instab3.pdf')
 plt.savefig(savefile)
 plt.show()
