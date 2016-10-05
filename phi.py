@@ -9,7 +9,7 @@ define activation function for Poisson model
 import numpy as np
 
 
-
+#
 # #  softmax - smooth linear rectifier
 #
 # ''' here, log (1+e^(x)) '''
