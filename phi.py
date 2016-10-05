@@ -66,7 +66,7 @@ def phi_prime2(g,gain):
     ind1 = np.where(g_calc>=thresh)
     g_calc[ind[0]] = 0.
     g_calc[ind1[0]] = 1.
-    phi_pr2 = gain*2*g_calc
+    phi_pr2 = gain*2*np.ones(g.shape)
 
     return phi_pr2
 

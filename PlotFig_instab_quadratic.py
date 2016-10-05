@@ -81,7 +81,7 @@ syn_scale = np.array((1., 40.))
 
 ''' set save directory '''
 if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic/'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_softplus/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic/'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -190,7 +190,7 @@ ax3.set_title('Strong synapses')
 # two_point_integral_sim = np.load(savefile)
 
 ''' compute stability '''
-Ncalc = 10  # 3 for rasters
+Ncalc = 40  # 3 for rasters
 
 tstop = 4000. * tau
 dt = .02 * tau
@@ -255,7 +255,8 @@ for nn in range(Ncalc):
 
     ind_include = range(Ne)
     spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
-    rE_av_sim[nn] = np.sum(spk_Epop) / float(tstop-trans) / float(len(ind_include))
+    tmax = np.amax(spktimes[:, 0])
+    rE_av_sim[nn] = np.sum(spk_Epop) / float(tmax) / float(len(ind_include))
 
     two_point_pop_sim[nn, :] = auto_covariance_pop(spktimes, range(Ne), spktimes.shape[0], dt, lags, tau,
                                                        tstop, trans)
