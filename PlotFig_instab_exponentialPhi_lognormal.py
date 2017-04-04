@@ -7,6 +7,7 @@ plot the instability figure with loaded sims / theory, and using gridspec to set
 ''' Import libraries '''
 import params; reload(params)
 from generate_adj import generate_adj as gen_adj
+from generate_W_lognormal import generate_W as gen_W
 
 import sim_poisson
 import numpy as np
@@ -67,7 +68,7 @@ Ntrials = 1
 tstop = 600. * tau
 Ncalc = 3
 
-dt = .002 * tau
+dt = .02 * tau
 trans = 5. * tau
 window = tstop
 Tmax = 8 * tau
@@ -75,13 +76,13 @@ dt_ccg = 1
 lags = np.arange(-Tmax, Tmax, dt_ccg)
 
 # syn_scale = np.array((1., 57.)) # for quadratic, was 75
-syn_scale = np.array((1., 40.))
+syn_scale = np.array((1., 30.))
 # syn_scale = np.array((0., 1., 12.))  # for linear
 
 
 ''' set save directory '''
-if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic_transfer/'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic_transfer/'
+if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_exponential_transfer_lognormalW/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/1loop_Ne=200_exponential_transfer_lognormalW/'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -122,16 +123,8 @@ ax1.set_yticks([])
 print 'running sims 1'
 
 ### generate scaled weight matrix from frozen connectivity realization
-W = W0 * 1.
-if Ne > 0:
-    W[0:Ne, 0:Ne] = weightEE * W0[0:Ne, 0:Ne]
-    W[Ne:, 0:Ne] = weightIE * W0[Ne:, 0:Ne]
 
-if Ni > 0:
-    W[0:Ne, Ne:] = weightEI * W0[0:Ne, Ne:]
-    W[Ne:, Ne:] = weightII * W0[Ne:, Ne:]
-
-W *= syn_scale[0]
+W = gen_W(W0, Ne, weightEE*syn_scale[0], weightEE*syn_scale[0], weightEI*syn_scale[0], weightIE*syn_scale[0], weightII*syn_scale[0])
 
 spktimes, g_vec1 = sim_poisson.sim_poisson(W, tstop, trans, dt)
 
@@ -151,17 +144,7 @@ ax2.set_xlim((0, tstop/1000.))
 ax2.set_title('Weak synapses')
 
 print 'running sims 2'
-W = W0 * 1.
-if Ne > 0:
-    W[0:Ne, 0:Ne] = weightEE * W0[0:Ne, 0:Ne]
-    W[Ne:, 0:Ne] = weightIE * W0[Ne:, 0:Ne]
-
-if Ni > 0:
-    W[0:Ne, Ne:] = weightEI * W0[0:Ne, Ne:]
-    W[Ne:, Ne:] = weightII * W0[Ne:, Ne:]
-
-W *= syn_scale[1]
-
+W = gen_W(W0, Ne, weightEE*syn_scale[1], weightEE*syn_scale[1], weightEI*syn_scale[1], weightIE*syn_scale[1], weightII*syn_scale[1])
 spktimes, g_vec2 = sim_poisson.sim_poisson(W, tstop, trans, dt)
 
 print 'plotting raster 2'
@@ -224,16 +207,12 @@ for nn in range(Ncalc):
     print 'progress %: ', float(nn)/float(Ncalc)*100
 
     ### generate scaled weight matrix from frozen connectivity realization
-    W = W0 * 1.
-    if Ne > 0:
-        W[0:Ne, 0:Ne] = weightEE * W0[0:Ne, 0:Ne]
-        W[Ne:, 0:Ne] = weightIE * W0[Ne:, 0:Ne]
+    if syn_scale[nn] > 0:
+        W = gen_W(W0, Ne, weightEE * syn_scale[nn], weightEE * syn_scale[nn], weightEI * syn_scale[nn],
+                  weightIE * syn_scale[nn], weightII * syn_scale[nn])
+    else:
+        W = np.zeros((N, N))
 
-    if Ni > 0:
-        W[0:Ne, Ne:] = weightEI * W0[0:Ne, Ne:]
-        W[Ne:, Ne:] = weightII * W0[Ne:, Ne:]
-
-    W *= syn_scale[nn]
     r_th = rates_ss(W)
     r_th_11oop = rates_1loop(W)
 
@@ -262,14 +241,13 @@ for nn in range(Ncalc):
                                                        tstop, trans)
     two_point_integral_sim[nn] = np.sum(two_point_pop_sim[nn, :]) * 1
 
-Nstab = Ncalc
+Nstab = 38
 fac10 = np.floor(np.log10(1.5*np.amax(rE_av_theory[:Nstab]+rE_av_1loop[:Nstab]))).astype(int)
 
 rE_av_sim *= 1000
 rE_av_theory *= 1000
 rE_av_1loop *= 1000
-
-ax4.plot(syn_scale[::2]*weightEE, rE_av_sim[::2], 'ko')
+ax4.plot(syn_scale*weightEE, rE_av_sim, 'ko')
 ax4.plot(syn_scale[:Nstab]*weightEE, rE_av_theory[:Nstab], 'k', linewidth=2)
 ax4.plot(syn_scale[:Nstab]*weightEE, rE_av_theory[:Nstab]+rE_av_1loop[:Nstab], 'r', linewidth=2)
 ax4.set_yticks(np.linspace(np.round(.9*np.amin(rE_av_theory[:Nstab]), decimals=4), np.round(1.5*np.amax(rE_av_theory[:Nstab]+rE_av_1loop[:Nstab]), decimals=3), num=3))
@@ -281,11 +259,11 @@ two_point_integral_sim *= 1000
 two_point_integral_theory *= 1000
 two_point_integral_1loop *= 1000
 
-ax5.plot(syn_scale[::2]*weightEE, two_point_integral_sim[::2], 'ko')
+ax5.plot(syn_scale*weightEE, two_point_integral_sim, 'ko')
 ax5.plot(syn_scale[:Nstab]*weightEE, two_point_integral_theory[:Nstab], 'k', linewidth=2)
 ax5.plot(syn_scale[:Nstab]*weightEE, two_point_integral_theory[:Nstab]+two_point_integral_1loop[:Nstab], 'r', linewidth=2)
-ax5.set_yticks(np.linspace(np.round(.9*np.amin(two_point_integral_theory[:Nstab]), decimals=3), np.round(1*np.amax(two_point_integral_theory[:Nstab]+two_point_integral_1loop[:Nstab]), decimals=3), num=3))
-ax5.set_ylim((np.round(.9*np.amin(two_point_integral_theory[:Nstab]), decimals=3), np.round(1.2*np.amax(two_point_integral_theory[:Nstab]+two_point_integral_1loop[:Nstab]), decimals=4)))
+ax5.set_yticks(np.linspace(np.round(.9*np.amin(two_point_integral_theory[:Nstab]), decimals=3), np.round(1.2*np.amax(two_point_integral_theory[:Nstab]+two_point_integral_1loop[:Nstab]), decimals=3), num=3))
+ax5.set_ylim((np.round(.9*np.amin(two_point_integral_theory[:Nstab]), decimals=3), np.round(1.5*np.amax(two_point_integral_theory[:Nstab]+two_point_integral_1loop[:Nstab]), decimals=4)))
 ax5.set_xlim((0, np.amax(syn_scale*weightEE)))
 ax5.set_ylabel('Cov. \n (sp'+r'$^2$'+'/s)', fontsize=12)
 
@@ -313,7 +291,6 @@ for ax in [ax1, ax2, ax3, ax4, ax5, ax6]:
 ax4.set_xticklabels('')
 ax5.set_xticklabels('')
 
-# savefile = '/local1/Documents/projects/structure_driven_activity/Fig_instab_quadrati1.eps'
-savefile = os.path.join(save_dir, 'fig_instab_quadratic.pdf')
+savefile = '/local1/Documents/projects/field_theory_spiking/Fig_instab_exponential_lognormalW.eps'
 plt.savefig(savefile)
 plt.show()

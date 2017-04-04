@@ -14,7 +14,7 @@ from phi import phi_prime
 from theory import rates_ss
 import params
 from generate_adj import generate_adj as gen_adj
-from correlation_functions import bin_pop_spiketrain, auto_covariance_pop
+from correlation_functions import bin_pop_spiketrain, auto_covariance_pop, cross_spectrum
 
 def sim_poisson(W, tstop, trans, dt):
 
@@ -35,12 +35,13 @@ def sim_poisson(W, tstop, trans, dt):
 
     # sim variables
     Nt = int(tstop/dt)
-    t = 0
+    t = 0.
     numspikes = 0
     
-    maxspikes = 500*N*tstop/1000  # 500 Hz / neuron
+    maxspikes = int(500*N*tstop/1000.)  # 500 Hz / neuron
     spktimes = np.zeros((maxspikes, 2)) # store spike times and neuron labels
     g_vec = np.zeros((Nt, N))
+    s_vec = np.zeros((Nt, N))
 
     # alpha function synaptic variables
     s = np.zeros((N,))
@@ -61,6 +62,7 @@ def sim_poisson(W, tstop, trans, dt):
         # compute each neuron's input
         g = np.dot(W, s) + b
         g_vec[i] = g
+        s_vec[i] = s
 
         # decide if each neuron spikes, update synaptic output of spiking neurons
         # each neurons's rate is phi(g)
@@ -82,11 +84,11 @@ def sim_poisson(W, tstop, trans, dt):
                     numspikes += 1
         
         s0 = s
-    
+
     # truncate spike time array
     spktimes = spktimes[0:numspikes, :]
 
-    return spktimes, g_vec
+    return spktimes, g_vec, s_vec
 
 
 if __name__ == '__main__':
@@ -123,14 +125,48 @@ if __name__ == '__main__':
         W[0:Ne,Ne:] = weightEI*W0[0:Ne, Ne:]
         W[Ne:,Ne:] = weightII*W0[Ne:, Ne:]
 
-    spktimes, g_vec = sim_poisson(W, tstop, trans, dt)
+    spktimes, g_vec, s_vec = sim_poisson(W, tstop, trans, dt)
 
     # compute some statistics
     ind_include = range(Ne)  # indices of E neurons
     spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
     dt_ccg = 1.  # ms
     lags = np.arange(-10.*tau, 10.*tau, dt_ccg)
-    pop_2point = auto_covariance_pop(spktimes, ind_include, numspikes, dt, lags, tau, tstop, trans)
+    pop_2point = auto_covariance_pop(spktimes, ind_include, len(spktimes), dt, lags, tau, tstop, trans)
 
 
+    # compute cross-spectral matrix
+    from theory import linear_response_fun, two_point_function_fourier_freq, rates_ss
+    import matplotlib.pyplot as plt
 
+    C2 = np.zeros((N, N, 256), dtype='complex128')
+    D = np.zeros((N, 256), dtype='complex128')
+    V = np.zeros((N, N, 256), dtype='complex128')
+
+    C2_tree = np.zeros((N, N, 256), dtype='complex128')
+    Delta = np.zeros((N, N, 256), dtype='complex128')
+    Delta_hat = np.zeros((N, N, 256, 3), dtype='complex128')
+
+    rbar = rates_ss(W)
+
+    for i in range(N):
+        for j in range(N):
+            freq, C2[i, j, :] = cross_spectrum(spktimes, len(spktimes), i, j, dt, lags, tau, tstop, trans)
+
+    for i in range(256):
+        # V[:, :, i], D[:, i], _ = np.linalg.svd(C2[:, :, i])
+        # D[:, i], V[:, :, i] = np.linalg.eigh(C2[:, :, i])
+
+        D[:, i], V[:, :, i] = np.linalg.eigh(C2_tree[:, :, i])
+
+        Delta[:, :, i] = linear_response_fun(freq[i], W, rates_ss)
+        C2_tree[:, :, i] = two_point_function_fourier_freq(W, [freq[i]])[:, :, 0]
+
+        Delta_hat[:, :, i, 0] = V[:, :, i].dot(np.sqrt(np.diag(D[:, i]))).dot(np.linalg.inv(np.diag(rbar)))
+        Delta_hat[:, :, i, 1] = 1j*V[:, :, i].dot(np.sqrt(np.diag(D[:, i]))).dot(np.linalg.inv(np.diag(rbar)))
+        Delta_hat[:, :, i, 2] = -1*V[:, :, i].dot(np.sqrt(np.diag(D[:, i]))).dot(np.linalg.inv(np.diag(rbar)))
+
+    plt.figure()
+    plt.imshow( (Delta[:,:,0] + Delta_hat[:,:,0,0]).real, interpolation='none', cmap='bwr', clim=(-2, 2))
+
+    plt.figure(); plt.imshow(np.eye(N) - np.linalg.inv(Delta_hat[:,:,0]).real - par.gain*W)

@@ -14,7 +14,10 @@ def raster(spktimes, numspikes, tstop, savefile = None, size = None):
     raster plot
     """
 
-    rast = plt.figure(figsize=size)
+    if size != None:
+        rast = plt.figure(figsize=size)
+    else:
+        rast = plt.figure()
 
     for i in range(0,numspikes):
         plt.plot(spktimes[i, 0], spktimes[i, 1], 'k.', markersize=1)

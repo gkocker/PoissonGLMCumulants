@@ -166,9 +166,9 @@ dt = .02*tau
 
 ''' plot log odds of stim given activity as synaptic strength scales '''
 Ncalc = 40
-# N_code = (Ne - N_ff)/2
-N_code = 10
-ind_pop = np.arange(N_ff, N_ff+N_code)
+N_code = (Ne - N_ff)/2
+# ind_pop = np.arange(N_ff, N_ff+N_code)
+ind_pop = np.arange(N_ff + N_code/2, N_ff + N_code + N_code/2)
 
 p_stim1 = 0.5
 p_stim2 = 0.5
@@ -354,7 +354,11 @@ for nn in range(0, Nplot, 2):
     spktimes, g_vec2 = sim_poisson(W, tstop, trans, dt)
     spktimes[:, 0] -= trans
     for r, t in enumerate(T_start):
-        ind_start = np.where(spktimes[:, 0] >= t)[0][0]
+        ind_start = np.where(spktimes[:, 0] >= t)[0]
+        if len(ind_start) > 0:
+            ind_start = ind_start[0]
+        else:
+            continue
         ind_end = np.where(spktimes[:, 0] < t + T)[0][-1]
         for n in range(N):
             r_sim_stim2[nn, r, n] = sum(spktimes[ind_start:ind_end, 1] == n)
@@ -549,13 +553,13 @@ for ax in [ax1, ax2, ax3]:
 
 if plot_linear == 'True':
     if sys.platform == 'darwin':
-        save_dir = '/Users/gabeo/Documents/projects/structure_driven_activity/encoding_assembly/linear'
+        save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/encoding_assembly/linear'
     elif sys.platform == 'linux2':
-        save_dir = '/local1/Documents/projects/structure_driven_activity/encoding_assembly/linear'
+        save_dir = '/local1/Documents/projects/field_theory_spiking/encoding_assembly/linear'
 
 else:
-    if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/structure_driven_activity/encoding_assembly/nonlinear'
-    elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/encoding_assembly/nonlinear'
+    if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/encoding_assembly/nonlinear'
+    elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/encoding_assembly/nonlinear'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -565,13 +569,13 @@ if not os.path.exists(save_dir):
 # fig1.show()
 
 if plot_linear == 'True' and Ni > 0:
-    savefile = os.path.join(save_dir, 'Fig_decoding_pop_linear.eps')
+    savefile = os.path.join(save_dir, 'Fig_decoding_pop_linear_test.eps')
 elif plot_linear != 'True' and Ni > 0:
-    savefile = os.path.join(save_dir, 'Fig_decoding_pop_nonlinear.eps')
+    savefile = os.path.join(save_dir, 'Fig_decoding_pop_nonlinear_test.eps')
 elif plot_linear == 'True' and Ni == 0:
-    savefile = os.path.join(save_dir, 'Fig_decoding_Ni=0_linear.eps')
+    savefile = os.path.join(save_dir, 'Fig_decoding_Ni=0_linear_test.eps')
 elif plot_linear != 'True' and Ni == 0:
-    savefile = os.path.join(save_dir, 'Fig_decoding_Ni=0_nonlinear.eps')
+    savefile = os.path.join(save_dir, 'Fig_decoding_Ni=0_nonlinear_test.eps')
 
 fig1.savefig(savefile)
 fig1.show()

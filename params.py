@@ -40,9 +40,14 @@ class params:
         self.gain = .1 # gain of threshold-linear input-output function
         self.b = np.zeros((self.N,))
 
-        self.b[self.N_ff:] = 0.1
+        # self.b[self.N_ff:] = 0.1
+        self.b[self.N_ff:] = -1.5
+        self.b[self.Ne:] = -2. # -1.5 for balanced
 
-        # self.b[self.N_ff:self.Ne] = .1  # if E cells have threshold-linear transfer
+        # self.b[:self.N_ff/2] = 0.1
+        # self.b[self.N_ff/2:self.N_ff] = 0.1
+
+        # self.b[self.N_ff:self.Ne] = np.sqrt(.1)  # if E cells have threshold-linear transfer
         # self.b[self.Ne:] = 0.2
 
         #  triplet plasticity parameters

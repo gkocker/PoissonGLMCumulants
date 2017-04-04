@@ -10,6 +10,7 @@ Figure: activity and discriminability as approach instability
 ''' Import libraries '''
 import params; reload(params)
 from generate_adj import generate_adj as gen_adj
+from generate_adj import generate_regular_adj as gen_reg_adj
 from degdist import degdist
 from generate_W_lognormal import generate_W as gen_W
 
@@ -52,16 +53,16 @@ weightIE = par.weightIE
 weightII = par.weightII
 
 Ntrials = 1
-plot_raster = False
+plot_raster = True
 
 if plot_raster:
     tstop = 600. * tau
     Ncalc = 3
 else:
-    tstop = 10000. * tau
+    tstop = 6000. * tau
     # tstop = 10*tau
     Ncalc = 40  # 3 for rasters
-dt = .002 * tau
+dt = .005 * tau
 trans = 5. * tau
 window = tstop
 Tmax = 8 * tau
@@ -106,20 +107,21 @@ rE_av_sim = np.zeros((Ncalc, Ntrials))
 rI_av_sim = np.zeros((Ncalc, Ntrials))
 
 if plot_raster:
-    # syn_scale = np.array((0., 8., 45.)) # for quadratic, was 75
-    syn_scale = np.array((0., 1., 12.)) # for linear
+    syn_scale = np.array((0., 20., 70.)) # for quadratic, was 75
+    # syn_scale = np.array((0., 1., 12.)) # for linear
     # syn_scale = np.array((0., 1., 75.))  # for square root
     # syn_scale = np.array((0., 6., 20.))  # for quadratic E, linear I
 
 else:
     # syn_scale = np.linspace(0., 85., Ncalc) # for quadratic
-    syn_scale = np.linspace(0., 12., Ncalc) # for linear
+    # syn_scale = np.linspace(0., 12., Ncalc) # for linear
 #     syn_scale = np.linspace(0, 100., Ncalc)  # for square root
 #     syn_scale = np.linspace(0., 20., Ncalc)  # for quadratic E, linear I
+    syn_scale = np.linspace(0, 95., Ncalc)
 
 ''' set save directory '''
-if sys.platform == 'darwin': save_dir = '/Users/gocker/Documents/projects/structure_driven_activity/1loop_Ne=200_linear_transfer/'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_linear_transfer/'
+if sys.platform == 'darwin': save_dir = '/Users/gocker/Documents/projects/field_theory_spiking/1loop_Ne=200_exponential_transfer/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/1loop_Ne=200_exponential_transfer/'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -145,7 +147,7 @@ else:
 print('Ne=' + str(Ne) + ', Ni=' + str(Ni))
 
 # Nstable = 38
-Nstable = Ncalc-2
+Nstable = Ncalc
 
 if not plot_raster:
     print 'computing theory'
@@ -191,7 +193,7 @@ if not plot_raster:
         stab_mat_mft = np.dot(np.diag(phi_prime(g, gain)), W)
         stab_mat_1loop = stability_matrix_1loop(w, W, r_th)
         spec_rad[nn] = max(abs(np.linalg.eigvals(stab_mat_mft)))
-        spec_rad_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft - stab_mat_1loop)))
+        spec_rad_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft + stab_mat_1loop)))
 
         if spec_rad[nn] >= 1.:
             print 'mft unstable at wEE = ', weightEE
@@ -199,10 +201,10 @@ if not plot_raster:
             break
 
         spec_rad_E[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[:Ne, :Ne])))
-        spec_rad_E_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[:Ne, :Ne] - stab_mat_1loop[:Ne, :Ne])))
+        spec_rad_E_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[:Ne, :Ne] + stab_mat_1loop[:Ne, :Ne])))
 
         spec_rad_I[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[Ne:, Ne:])))
-        spec_rad_I_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[Ne:, Ne:] - stab_mat_1loop[Ne:, Ne:])))
+        spec_rad_I_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft[Ne:, Ne:] + stab_mat_1loop[Ne:, Ne:])))
 
         two_point_integral_theory[nn] = np.real(two_point_function_fourier_pop(W, range(Ne))[0])
         two_point_integral_1loop[nn] = np.real(two_point_function_fourier_pop_1loop(W, range(Ne))[0])
@@ -239,12 +241,14 @@ for nn in calc_range:
     # except:
    #     print 'mft unstable, % complete = ' + str(float(nn) / float(Ncalc) * 100)
     for nt in range(Ntrials):
-        spktimes, g_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
+        spktimes, g_vec, s_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
 
         ind_include = range(0, Ne)
         spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
         spk_readout = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, [0])
-        rE_av_sim[nn, nt] = np.sum(spk_Epop) / np.amax(spktimes[:, 0]) / float(len(ind_include))
+        # rE_av_sim[nn, nt] = np.sum(spk_Epop) / np.amax(spktimes[:, 0]) / float(len(ind_include))
+        rE_av_sim[nn, nt] = np.sum(spk_Epop) / float(tstop-trans) / float(len(ind_include))
+
         r_readout_sim[nn, nt] = np.sum(spk_readout) / float(tstop - trans)
 
         two_point_readout_sim[nn, nt, :] = cross_covariance_spk(spktimes, spktimes.shape[0], 0, 0, dt, lags, tau,
@@ -253,7 +257,8 @@ for nn in calc_range:
         if Ni > 0:
             ind_include = range(Ne, N)
             spk_Ipop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
-            rI_av_sim[nn, nt] = np.sum(spk_Ipop) / np.amax(spktimes[:, 0]) / float(len(ind_include))
+            # rI_av_sim[nn, nt] = np.sum(spk_Ipop) / np.amax(spktimes[:, 0]) / float(len(ind_include))
+            rI_av_sim[nn, nt] = np.sum(spk_Ipop) / float(tstop-trans) / float(len(ind_include))
             two_point_Ipop_sim[nn, nt, :] = auto_covariance_pop(spktimes, range(Ne, N), spktimes.shape[0], dt, lags,
                                                                 tau,
                                                                 tstop, trans)
@@ -269,6 +274,25 @@ for nn in calc_range:
         spktimes[:, 0] -= trans
         raster(spktimes, spktimes.shape[0], tstop, savefile, size=(1.875, 1.875))
 
+        ind = (W0[0, :] == 1)
+        gE = np.dot(W[0, :Ne], s_vec.T[:Ne])
+        gI = np.dot(W[0, Ne:], s_vec.T[Ne:])
+
+        savefile = os.path.join(save_dir, 'input_neuron0_scale='+ str(syn_scale[nn]) + '.pdf')
+        size=(1.875, 1.875)
+        fig = plt.figure(figsize=size)
+        plt.plot(np.arange(0, tstop, dt), g_vec[:, 0]+1.5, 'k', linewidth=2, label='Total')
+        plt.plot(np.arange(0, tstop, dt), gE, 'g', linewidth=2, label='Excitatory')
+        plt.plot(np.arange(0, tstop, dt), gI, 'b', linewidth=2, label='Inhibitory')
+        plt.legend(loc=0)
+        plt.ylim((-4, 4))
+        plt.xlim((0, 2000))
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Synaptic input')
+
+        plt.savefig(savefile)
+        plt.close(fig)
+
         print 'plotting population two-point function'
 
 end_time = time.time()
@@ -283,7 +307,7 @@ syn_scale *= weightEE
 if not plot_raster:
 
     # size = (2., .8)
-    size = (6.5, .8)
+    size = (5., .8)
 
     fig, ax = plt.subplots(1, figsize=size)
     ax.plot(syn_scale[:Nstable], rE_av_theory[:Nstable],  'k', label='Tree level', linewidth=2)
@@ -434,8 +458,7 @@ if not plot_raster:
     fig, ax = plt.subplots(1, figsize=size)
     ax.plot(syn_scale[:Nstable], spec_rad[:Nstable], 'k', label='Tree level', linewidth=2)
     if not 'linear' in save_dir:
-        ax.plot(syn_scale[:Nstable], spec_rad[:Nstable] + spec_rad_1loop[:Nstable],
-                                         'r', label='One loop', linewidth=2)
+        ax.plot(syn_scale[:Nstable], spec_rad_1loop[:Nstable], 'r', label='One loop', linewidth=2)
 
         ax.plot(syn_scale, np.ones(syn_scale.shape), 'k--')
 
@@ -461,7 +484,7 @@ if not plot_raster:
     fig, ax = plt.subplots(1, figsize=size)
     ax.plot(syn_scale[:Nstable], spec_rad_E[:Nstable], 'k', label='Tree level', linewidth=2)
     if not 'linear' in save_dir:
-        ax.plot(syn_scale[:Nstable], spec_rad_E[:Nstable] + spec_rad_E_1loop[:Nstable],
+        ax.plot(syn_scale[:Nstable], spec_rad_E_1loop[:Nstable],
                                          'r', label='One loop', linewidth=2)
 
         ax.plot(syn_scale, np.ones(syn_scale.shape), 'k--')
@@ -488,7 +511,7 @@ if not plot_raster:
     fig, ax = plt.subplots(1, figsize=size)
     ax.plot(syn_scale[:Nstable], spec_rad_I[:Nstable], 'k', label='Tree level', linewidth=2)
     if not 'linear' in save_dir:
-        ax.plot(syn_scale[:Nstable], spec_rad_I[:Nstable] + spec_rad_I_1loop[:Nstable],
+        ax.plot(syn_scale[:Nstable], spec_rad_I_1loop[:Nstable],
                                          'r', label='One loop', linewidth=2)
 
         ax.plot(syn_scale, np.ones(syn_scale.shape), 'k--')
@@ -515,7 +538,7 @@ if not plot_raster:
     ax.plot(lags, two_point_pop_sim[4, 0, :], 'k', label=r'$W_{EE} = .05$')
     ax.plot(lags, two_point_pop_sim[10, 0, :], 'r', label=r'$W_{EE} = .13$')
     ax.plot(lags, two_point_pop_sim[24, 0, :], 'b', label=r'$W_{EE} = 0.3$')
-    # ax.legend(loc=0, fontsize=10)
+    ax.legend(loc=0, fontsize=10)
 
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_fontsize(10)

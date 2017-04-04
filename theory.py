@@ -482,3 +482,40 @@ def two_point_function_fourier_pop_1loop(W, ind_pop):
         C2f[o] += np.dot(F1_pop.conj(), Fbarsum2_int_conj[:, o])
 
     return C2f
+
+
+def two_point_function_fourier_freq(W, w):
+    """
+    calculate tree-level prediction for two-point function in fluctuation expansion
+    inputs: weight matrix
+    leave out factors of two pi that come with delta functions because we have an implicit inverse fourier transform from one of the frequencies that is left out because we are dealing only with stationary processes
+    """
+
+    par = params.params()
+    N = par.N
+    gain = par.gain
+    b = par.b
+
+    phi_r = rates_ss(W)
+
+    g0 = np.dot(W, phi_r) + b
+    phi_1 = phi_prime(g0, gain)
+    phi_1 = np.diag(phi_1)
+    W = np.dot(phi_1, W)
+
+    Tmax = 100
+    dt_ccg = 1
+    wmax = 1. / dt_ccg
+    dw = 1. / Tmax
+
+    # w = np.arange(-wmax, wmax, dw) * math.pi
+    # w = np.arange(0., 1, 1)
+    Nw = len(w)
+
+    C2f = np.zeros((N, N, Nw), dtype=complex)  # fourier transform of stationary cross-covariance matrix
+
+    for o in range(Nw):
+        F1 = linear_response_fun(w[o], W, phi_r)
+        C2f[:, :, o] = np.dot(phi_r * F1, F1.conj().T)
+    #
+    return C2f

@@ -284,6 +284,6 @@ def cross_spectrum(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     spk1 -= r1
     spk2 -= r2    
     
-    freq, cross_spec = signal.csd(spk1, spk2, fs=1./dt_ccg, window = 'bartlett', nperseg = 256, scaling = 'density', return_onesided=False)
+    freq, cross_spec = signal.csd(spk1, spk2, fs=1./dt_ccg, window='bartlett', nperseg = 256, scaling = 'density', return_onesided=False)
     
     return freq, cross_spec/(dt_ccg**2)

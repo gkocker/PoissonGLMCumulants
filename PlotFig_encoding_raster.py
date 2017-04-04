@@ -32,7 +32,7 @@ import sys
 
 ''' set save directory '''
 if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/encoding_assembly'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/encoding_assembly/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/encoding_assembly/'
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
 
@@ -55,6 +55,9 @@ weightEI = par.weightEI
 weightIE = par.weightIE
 weightII = par.weightII
 N_ff = par.N_ff
+
+N_code = (Ne - N_ff)/2
+
 
 ''' set up subplot grid '''
 fig = plt.figure(figsize=(7.5, 4))
@@ -107,20 +110,15 @@ else:
     W0 = gen_adj(Ne, Ni, pEE, pEI, pIE, pII)
 
     if Ne > 0 and N_ff > 0: # make first 2 groups of 50 neurons a projection layer
-        W0_ff = np.random.rand(Ne-2*N_ff, N_ff)
-        W0_ff2 = W0_ff.copy()
+        W0_ff = np.random.rand(N, N)
         W0_ff[W0_ff > .5] = 0.
         W0_ff[W0_ff != 0] = 1.
 
-        W0_ff2[W0_ff2 > .25] = 0.
-        W0_ff2[W0_ff2 != 0] = 1.
+        W0[:, :N_ff] = 0
+        W0[N_ff:N_ff+N_code, :N_ff/2] += W0_ff[N_ff:N_ff+N_code, :N_ff/2]
 
-        W0[:Ne, :2*N_ff] = 0
-        W0[ind_pop, :N_ff] += W0_ff
+        W0[N_ff+N_code:Ne, N_ff/2:N_ff] += W0_ff[N_ff+N_code:Ne, N_ff/2:N_ff]
 
-        W0[ind_pop, N_ff:2*N_ff] += W0_ff2
-
-        W0[:2*N_ff, :] = 0
 
     savefile = os.path.join(save_dir, 'W0_2layer.npy')
     np.save(savefile, W0)
@@ -166,48 +164,48 @@ else:
 b_set = raw_input("Enter 'True' after setting b for stim 1 in params.py")
 
 spktimes, g_vec1 = sim_poisson.sim_poisson(W, tstop, trans, dt)
-
-print 'plotting raster 1'
-spktimes[:, 0] -= trans
-numspikes = spktimes.shape[0]
-
-for i in range(0, numspikes):
-    ax2.plot(spktimes[i, 0]/1000., spktimes[i, 1], 'k.', markersize=.1)
-
-ax3.set_yticks([0, Ne-1])
-ax2.set_xticks([0, (tstop-trans)/1000.])
-# ax2.set_ylabel('Neuron', fontsize=12)
-ax2.set_xlabel('Time (s)', fontsize=12)
-ax2.set_ylim((0, N))
-ax2.set_xlim((0, (tstop-trans)/1000.))
-ax2.set_title('Stimulus A')
-
-if plot_linear == 'True':
-    phi_set = raw_input("Enter 'True' after checking that transfer is threshold-linear in phi.py")
-else:
-    phi_set = raw_input("Enter 'True' after checking that transfer is threshold-quadratic in phi.py")
-
-b_set = raw_input("Enter 'True' after setting b for stim 2 in params.py")
-reload(params)
-b = par.b
-
-spktimes, g_vec2 = sim_poisson.sim_poisson(W, tstop, trans, dt)
-
-print 'plotting raster 2'
-spktimes[:, 0] -= trans
-numspikes = spktimes.shape[0]
-
-for i in range(0, numspikes):
-    ax3.plot(spktimes[i, 0]/1000., spktimes[i, 1], 'k.', markersize=.1)
-
-ax3.set_yticks([0, Ne-1])
-ax3.set_xticks([0, (tstop-trans)/1000.])
-ax3.set_yticklabels([])
-# ax4.set_ylabel('Neuron', fontsize=12)
-ax3.set_xlabel('Time (s)', fontsize=12)
-ax3.set_ylim((0, N))
-ax3.set_xlim((0, (tstop-trans)/1000.))
-ax3.set_title('Stimulus B')
+#
+# print 'plotting raster 1'
+# spktimes[:, 0] -= trans
+# numspikes = spktimes.shape[0]
+#
+# for i in range(0, numspikes):
+#     ax2.plot(spktimes[i, 0]/1000., spktimes[i, 1], 'k.', markersize=.1)
+#
+# ax3.set_yticks([0, Ne-1])
+# ax2.set_xticks([0, (tstop-trans)/1000.])
+# # ax2.set_ylabel('Neuron', fontsize=12)
+# ax2.set_xlabel('Time (s)', fontsize=12)
+# ax2.set_ylim((0, N))
+# ax2.set_xlim((0, (tstop-trans)/1000.))
+# ax2.set_title('Stimulus A')
+#
+# if plot_linear == 'True':
+#     phi_set = raw_input("Enter 'True' after checking that transfer is threshold-linear in phi.py")
+# else:
+#     phi_set = raw_input("Enter 'True' after checking that transfer is threshold-quadratic in phi.py")
+#
+# b_set = raw_input("Enter 'True' after setting b for stim 2 in params.py")
+# reload(params)
+# b = par.b
+#
+# spktimes, g_vec2 = sim_poisson.sim_poisson(W, tstop, trans, dt)
+#
+# print 'plotting raster 2'
+# spktimes[:, 0] -= trans
+# numspikes = spktimes.shape[0]
+#
+# for i in range(0, numspikes):
+#     ax3.plot(spktimes[i, 0]/1000., spktimes[i, 1], 'k.', markersize=.1)
+#
+# ax3.set_yticks([0, Ne-1])
+# ax3.set_xticks([0, (tstop-trans)/1000.])
+# ax3.set_yticklabels([])
+# # ax4.set_ylabel('Neuron', fontsize=12)
+# ax3.set_xlabel('Time (s)', fontsize=12)
+# ax3.set_ylim((0, N))
+# ax3.set_xlim((0, (tstop-trans)/1000.))
+# ax3.set_title('Stimulus B')
 
 
 
@@ -216,7 +214,7 @@ N_code = (Ne - N_ff)/2
 ind_pop = range(N_ff, N_ff+N_code)
 b_set = raw_input("Enter 'True' after setting b for stim 1 in params.py")
 
-tstop = 60000. + trans
+tstop = 100000. + trans
 T = 200.
 spktimes, g_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
 spktimes[:, 0] -= trans
@@ -244,12 +242,14 @@ for i, t in enumerate(T_start):
 
 
 if plot_linear == 'True':
-    hist, bins = np.histogram(r_sim_stim1, bins=np.arange(0, 2, .04), density=True)
+    binsize = .04
+    hist, bins = np.histogram(r_sim_stim1, bins=np.arange(0, 5, binsize), density=True)
 else:
-    hist, bins = np.histogram(r_sim_stim1, bins=np.arange(0, 2, .02), density=True)
+    binsize = .04
+    hist, bins = np.histogram(r_sim_stim1, bins=np.arange(0, 5, binsize), density=True)
 
-ax4.plot(bins[:-1], hist, 'k', linewidth=1)
-ax5.plot(bins[:-1], hist, 'k', linewidth=1)
+ax4.plot(bins[:-1]+binsize/2., hist, 'k', linewidth=1)
+ax5.plot(bins[:-1]+binsize/2., hist, 'k', linewidth=1)
 
 r_pop_tree_stim1 = np.sum(rates_ss(W)[ind_pop]) / float(N_code)*(T)
 r_pop_1loop_stim1 = r_pop_tree_stim1 + np.sum(rates_1loop(W)[ind_pop].real) / float(N_code) *(T)
@@ -293,12 +293,14 @@ for i, t in enumerate(T_start):
     r_sim_stim2[i] = np.mean(r_temp[ind_pop])
 
 if plot_linear == 'True':
-    hist, bins = np.histogram(r_sim_stim2, bins=np.arange(0, 2, .04), density=True)
+    binsize=.04
+    hist, bins = np.histogram(r_sim_stim2, bins=np.arange(0, 5, binsize), density=True)
 else:
-    hist, bins = np.histogram(r_sim_stim2, bins=np.arange(0, 2, .02), density=True)
+    binsize=.04
+    hist, bins = np.histogram(r_sim_stim2, bins=np.arange(0, 5, binsize), density=True)
 
-ax4.plot(bins[:-1], hist, 'b', linewidth=1)
-ax5.plot(bins[:-1], hist, 'b', linewidth=1)
+ax4.plot(bins[:-1]+binsize/2., hist, 'b', linewidth=1)
+ax5.plot(bins[:-1]+binsize/2., hist, 'b', linewidth=1)
 
 r_pop_tree_stim2 = np.sum(rates_ss(W)[ind_pop]) / float(N_code) * (T)
 r_pop_1loop_stim2 = r_pop_tree_stim2 + np.sum(rates_1loop(W)[ind_pop].real) / float(N_code)*(T)
@@ -327,6 +329,8 @@ else:
 
 ax4.spines['bottom'].set_visible(False)
 ax4.set_xticks([])
+# ax4.set_xlim((0, .5))
+# ax5.set_xlim((0, .5))
 
 for ax in [ax1, ax2, ax3, ax4, ax5]:
 
@@ -337,7 +341,7 @@ for ax in [ax1, ax2, ax3, ax4, ax5]:
 
 
 if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/encoding_assembly'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/encoding_assembly'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/encoding_assembly'
 
 if plot_linear == 'True':
     savefile = os.path.join(save_dir, 'Fig_coding_rasters_linear.eps')

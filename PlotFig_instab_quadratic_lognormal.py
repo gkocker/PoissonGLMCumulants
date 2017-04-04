@@ -81,8 +81,8 @@ syn_scale = np.array((1., 30.))
 
 
 ''' set save directory '''
-if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/structure_driven_activity/1loop_Ne=200_quadratic_transfer_lognormalW/'
-elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/structure_driven_activity/1loop_Ne=200_quadratic_transfer_lognormalW/'
+if sys.platform == 'darwin': save_dir = '/Users/gabeo/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic_transfer_lognormalW/'
+elif sys.platform == 'linux2': save_dir = '/local1/Documents/projects/field_theory_spiking/1loop_Ne=200_quadratic_transfer_lognormalW/'
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -207,8 +207,11 @@ for nn in range(Ncalc):
     print 'progress %: ', float(nn)/float(Ncalc)*100
 
     ### generate scaled weight matrix from frozen connectivity realization
-    W = gen_W(W0, Ne, weightEE * syn_scale[nn], weightEE * syn_scale[nn], weightEI * syn_scale[n],
-              weightIE * syn_scale[nn], weightII * syn_scale[nn])
+    if syn_scale[nn] > 0:
+        W = gen_W(W0, Ne, weightEE * syn_scale[nn], weightEE * syn_scale[nn], weightEI * syn_scale[nn],
+                  weightIE * syn_scale[nn], weightII * syn_scale[nn])
+    else:
+        W = np.zeros((N, N))
 
     r_th = rates_ss(W)
     r_th_11oop = rates_1loop(W)
@@ -217,23 +220,24 @@ for nn in range(Ncalc):
     rE_av_1loop[nn] = np.mean(r_th_11oop[1:Ne]).real
 
     g = np.dot(W, r_th) + b
-    w = 1e-6
+    w = 0.
     stab_mat_mft = np.dot(np.diag(phi_prime(g, gain)), W)
     stab_mat_1loop = stability_matrix_1loop(w, W, r_th)
     spec_rad[nn] = max(abs(np.linalg.eigvals(stab_mat_mft)))
-    spec_rad_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft - stab_mat_1loop)))
+    spec_rad_1loop[nn] = max(abs(np.linalg.eigvals(stab_mat_mft + stab_mat_1loop)))
 
-    two_point_integral_theory[nn] = np.real(two_point_function_fourier_pop(W)[0])
-    two_point_integral_1loop[nn] = np.real(two_point_function_fourier_pop_1loop(W)[0])
+    two_point_integral_theory[nn] = np.real(two_point_function_fourier_pop(W, range(Ne))[0])
+    two_point_integral_1loop[nn] = np.real(two_point_function_fourier_pop_1loop(W, range(Ne))[0])
 
     spktimes, g_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
     spktimes[:, 0] -= trans
 
-    ind_include = range(1, Ne)
+    ind_include = range(Ne)
     spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
-    rE_av_sim[nn] = np.sum(spk_Epop) / float(tstop-trans) / float(len(ind_include))
+    tmax = np.amax(spktimes[:, 0])
+    rE_av_sim[nn] = np.sum(spk_Epop) / float(tmax) / float(len(ind_include))
 
-    two_point_pop_sim[nn, :] = auto_covariance_pop(spktimes, range(0, N), spktimes.shape[0], dt, lags, tau,
+    two_point_pop_sim[nn, :] = auto_covariance_pop(spktimes, range(Ne), spktimes.shape[0], dt, lags, tau,
                                                        tstop, trans)
     two_point_integral_sim[nn] = np.sum(two_point_pop_sim[nn, :]) * 1
 
@@ -287,6 +291,6 @@ for ax in [ax1, ax2, ax3, ax4, ax5, ax6]:
 ax4.set_xticklabels('')
 ax5.set_xticklabels('')
 
-savefile = '/local1/Documents/projects/structure_driven_activity/Fig_instab_quadratic_lognormalW.eps'
+savefile = '/local1/Documents/projects/field_theory_spiking/Fig_instab_quadratic_lognormalW.eps'
 plt.savefig(savefile)
 plt.show()

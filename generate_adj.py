@@ -42,3 +42,30 @@ def generate_adj(Ne,Ni,pEE,pEI,pIE,pII):
     np.fill_diagonal(W0,0) # disallow autapses    
     
     return W0
+
+def generate_regular_adj(Ne,Ni,pEE,pEI,pIE,pII):
+
+    N = Ne+Ni
+    kEE = pEE*Ne
+    kEI = pEI*Ni
+    kIE = pIE*Ne
+    kII = pII*Ni
+
+    W0 = np.zeros((N, N))
+
+    for n in range(Ne):
+        other_Eneurons = np.concatenate((np.arange(n), np.arange(n+1, Ne)))
+        ind_E = np.random.choice(other_Eneurons, size=kEE, replace=False)
+        ind_I = np.random.choice(range(Ne, N), size=kEI, replace=False)
+        W0[n, ind_E] = 1.
+        W0[n, ind_I] = 1.
+
+    for n in range(Ne, N):
+        ind_E = np.random.choice(range(Ne), size=kIE, replace=False)
+        other_Ineurons = np.concatenate((np.arange(Ne, n), np.arange(n+1, N)))
+        ind_I = np.random.choice(other_Ineurons, size=kII, replace=False)
+
+        W0[n, ind_E] = 1.
+        W0[n, ind_I] = 1.
+
+    return W0

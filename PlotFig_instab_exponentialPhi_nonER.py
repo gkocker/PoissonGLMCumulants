@@ -54,15 +54,17 @@ weightII = par.weightII
 Ntrials = 1
 plot_raster = False
 
-if plot_raster:
-    tstop = 600. * tau
-    Ncalc = 3
-else:
-    tstop = 4000. * tau
-    # tstop = 10*tau
-    Ncalc = 40  # 3 for rasters
 dt = .002 * tau
 trans = 5. * tau
+
+if plot_raster:
+    tstop = 600. * tau + trans
+    Ncalc = 3
+else:
+    tstop = 6000. * tau + trans
+    # tstop = 10*tau
+    Ncalc = 40  # 3 for rasters
+
 window = tstop
 Tmax = 8 * tau
 dt_ccg = 1
@@ -93,12 +95,15 @@ two_point_readout_sim = np.zeros((Ncalc, Ntrials, lags.size))
 two_point_pop_sim = np.zeros((Ncalc, Ntrials, lags.size))
 
 if plot_raster:
-    syn_scale = np.array((0., 1., 45.)) # for quadratic, was 75
+    # syn_scale = np.array((0., 1., 45.)) # for quadratic, was 75
     # syn_scale = np.array((0., 1., 12.)) # for linear
+    syn_scale = np.array((0, 75.))  # for exponential
 
 else:
-    syn_scale = np.linspace(0., 85., Ncalc) # for quadratic
+    # syn_scale = np.linspace(0., 85., Ncalc) # for quadratic
     # syn_scale = np.linspace(0., 60., Ncalc) # for linear
+    syn_scale = np.linspace(0., 95., Ncalc) # for exponential, unbalanced
+
 
 ''' set save directory '''
 if sys.platform == 'darwin': save_dir = '/Users/gocker/Documents/projects/field_theory_spiking/1loop_Ne=200_exponential_transfer_lognormalWEE_nonER/'
@@ -117,8 +122,8 @@ else:
 
     W0 = gen_adj(Ne, Ni, pEE, pEI, pIE, pII)
     # W0EE = degdist(int(np.floor(Ne/10.)), Ne, .1, -.5, pEE, .5, Ne)
-    # W0EE = degdist(0, Ne, .01, -1., pEE, .8, Ne)
-    # W0[:Ne, :Ne] = W0EE
+    W0EE = degdist(0, Ne, .01, -1., pEE, .8, Ne)
+    W0[:Ne, :Ne] = W0EE
 
     # if Ne > 0: # make first neuron a readout
     #     W0[0, :] = 0
@@ -130,7 +135,7 @@ else:
 
 print('Ne=' + str(Ne) + ', Ni=' + str(Ni))
 
-Nstable = 38
+Nstable = Ncalc
 
 W_store = np.zeros((N, N, Ncalc))
 
@@ -188,9 +193,9 @@ if not plot_raster:
 
 print 'running sims'
 if plot_raster:
-    calc_range = range(Ncalc)
+    calc_range = range(Nstable)
 else:
-    calc_range = range(0, Ncalc, 2)
+    calc_range = range(0, Nstable, 2)
 
 for nn in calc_range:
 
@@ -213,9 +218,11 @@ for nn in calc_range:
     # else:
     #     W = np.zeros((N, N))
 
-    W = W_store[:, :, nn]
     # except:
    #     print 'mft unstable, % complete = ' + str(float(nn) / float(Ncalc) * 100)
+
+    W = W_store[:, :, nn]
+
     for nt in range(Ntrials):
         spktimes, g_vec = sim_poisson.sim_poisson(W, tstop, trans, dt)
    
@@ -267,7 +274,7 @@ if not plot_raster:
     ax.set_xlabel('Exc-exc Synaptic Weight (mV)')
     ax.set_xlim((0, np.amax(meanEEweight)))
     ax.set_ylim((0, rE_av_theory[0]*2))
-    ax.legend(loc=0, fontsize=10)
+    # ax.legend(loc=0, fontsize=10)
 
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_fontsize(10)
@@ -292,7 +299,7 @@ if not plot_raster:
         ax.set_ylim((0, r_readout_theory[0]*20))
     elif 'linear' in save_dir:
         ax.set_ylim((0, np.amax(r_readout_theory)*1.5))
-    ax.legend(loc=0, fontsize=10)
+    # ax.legend(loc=0, fontsize=10)
 
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_fontsize(10)
@@ -315,7 +322,7 @@ if not plot_raster:
     ax.set_xlabel('Exc-exc Synaptic Weight (mV)')
     ax.set_xlim((0, np.amax(meanEEweight)))
     ax.set_ylim((0, rI_av_theory[0]*2))
-    ax.legend(loc=0, fontsize=10)
+    # ax.legend(loc=0, fontsize=10)
 
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_fontsize(10)
@@ -372,7 +379,7 @@ if not plot_raster:
     ax.set_xlabel('Exc-exc Synaptic Weight (mV)')
     ax.set_xlim((0, np.amax(meanEEweight)))
     ax.set_ylim((0, 1.5))
-    ax.legend(loc=0, fontsize=10)
+    # ax.legend(loc=0, fontsize=10)
 
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
         item.set_fontsize(10)
