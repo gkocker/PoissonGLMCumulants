@@ -190,66 +190,6 @@ def two_point_function_fourier_1loop(W):
     return C2f, w
 
 
-def three_point_function_fourier_Yu(W):
-    
-    '''
-    adapted from Yu Hu's matlab scripts to include rate functions that have gain != 1
-    '''
-    
-    from tensor_prods import tensor_aaa_d
-    from tensor_prods import tensor_M_T    
-    
-    par = params.params()
-    tau = par.tau
-    b = par.b
-    gain = par.gain
-    N = par.N
-    
-    phi_r = rates_ss(W)    
-    print phi_r    
-    
-    g0 = np.dot(W,phi_r) + b
-    phi_1 = np.diag(phi_prime(g0,gain))    
-    ### interaction matrix
-        
-#    Delta, w = linear_response(W,phi_r)
-    Tmax = 100
-    dt_ccg = 1
-    wmax = 1. / dt_ccg
-    dw = 1. / Tmax
-    
-    w = np.arange(-wmax, wmax, dw) * math.pi
-    Nw = w.size
-    
-#    w[np.where(np.abs(w)==np.amin(np.abs(w)))] = 1e-6    
-    
-    C3f = np.zeros((N,N,N,Nw,Nw), dtype='complex128')
-    I = np.eye(N)    
-    
-    W = np.dot(phi_1, W)
-    phi_r = np.dot(np.linalg.inv(I-W), phi_r)
-
-    
-    for o1 in range(Nw):
-        for o2 in range(Nw):
-            w1 = w[o1]
-            w2 = w[o2]
-            
-            F1 = linear_response_fun(w1, W, phi_r)
-            F2 = linear_response_fun(w2, W, phi_r)
-            F12 = linear_response_fun(-w1-w2, W, phi_r)
-            Fb1 = np.dot(F1, g_fun(w1)*W)
-            Fb2 = np.dot(F2, g_fun(w2)*W)
-            Fb12 = np.dot(F12, g_fun(-w1-w2)*W)
-            
-            C3f[:,:,:,o1,o2] = tensor_aaa_d(F12,F1,F2,phi_r) 
-            C3f[:,:,:,o1,o2] += tensor_M_T(F12, tensor_aaa_d(Fb12.conj().T, F1, F2, phi_r))
-            C3f[:,:,:,o1,o2] += np.transpose(tensor_M_T(F1, tensor_aaa_d(Fb1.conj().T, F2, F12, phi_r)), (2,0,1))
-            C3f[:,:,:,o1,o2] += np.transpose(tensor_M_T(F2, tensor_aaa_d(Fb2.conj().T, F12, F1, phi_r)), (1,2,0))
-#    
-    return C3f, w
-    
-    
 def g_fun(w):
     
     import numpy as np
@@ -519,3 +459,75 @@ def two_point_function_fourier_freq(W, w):
         C2f[:, :, o] = np.dot(phi_r * F1, F1.conj().T)
     #
     return C2f
+
+
+def two_point_function_fourier_lags(W, lags):
+    """
+    inputs: weight matrix, maximum lag, bin width for cross-correlation
+    """
+
+    import numpy as np
+    import math
+    import params;
+    reload(params)
+    from phi import phi_prime
+
+    par = params.params()
+    N = par.N
+    gain = par.gain
+    b = par.b
+
+    if N != W.shape[0]:
+        raise Exception('Mismatch between system size and weight matrix dimensions')
+
+    phi_r = rates_ss(W)
+
+    wmax = 1. / ((lags[1] - lags[0])) * 2 * math.pi
+    dw = wmax / lags.size
+
+    w = -wmax / 2. + dw * np.arange(lags.size)
+    #    w[np.where(np.abs(w)<1e-6)] = 1e-6
+
+    #    w = np.arange(-wmax, wmax, dw) * math.pi
+    #    w, trash = inv_f_trans_james(lags, np.zeros(lags.shape))
+    Nw = w.size
+
+    g0 = np.dot(W, phi_r) + b
+    phi_1 = phi_prime(g0, gain)
+    phi_1 = np.diag(phi_1)
+    W = np.dot(phi_1, W)
+
+    #    phi_r = np.diag(phi_r)
+
+    C2f = np.zeros((N, N, Nw), dtype=complex)  # fourier transform of stationary cross-covariance matrix
+
+    for o in range(Nw):
+        #        C2f[:,:,o] = np.dot(phi_r*Delta[:,:,o], Delta[:,:,o].conj().T)
+        F1 = linear_response_fun(w[o], W, phi_r)
+        F2 = linear_response_fun(w[o], W, phi_r)
+        C2f[:, :, o] = np.dot(phi_r * F1, F2.conj().T)
+    #
+    return C2f, w
+
+
+def two_point_function_lags(W, lags):
+    import numpy as np
+    import params;
+    reload(params)
+
+    par = params.params()
+    N = par.N
+
+    if N != W.shape[0]:
+        raise Exception('Mismatch between system size and weight matrix dimensions')
+
+    C2f, w = two_point_function_fourier_lags(W, lags)
+
+    C2 = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(C2f, axes=2), axis=2), axes=2) / (lags[1] - lags[0])
+    for i in range(N):
+        for j in range(N):
+            C2[i, j, :] -= C2[i, j, 0]
+
+    C2 = C2.real
+
+    return C2

@@ -11,10 +11,10 @@ import numpy as np
 
 class params:
     def __init__(self):
-        self.Ne = 200
-        self.Ni = 40  # 40
+        self.Ne = 20
+        self.Ni = 0  # 40
 
-        self.pEE = .2
+        self.pEE = .5
         self.pEI = .5
         self.pIE = .5
         self.pII = .5
@@ -40,9 +40,9 @@ class params:
         self.gain = .1 # gain of threshold-linear input-output function
         self.b = np.zeros((self.N,))
 
-        # self.b[self.N_ff:] = 0.1
-        self.b[self.N_ff:] = -1.5
-        self.b[self.Ne:] = -2. # -1.5 for balanced
+        self.b[self.N_ff:] = 0.1
+        # self.b[self.N_ff:] = -1.5
+        # self.b[self.Ne:] = -2. # -1.5 for balanced
 
         # self.b[:self.N_ff/2] = 0.1
         # self.b[self.N_ff/2:self.N_ff] = 0.1

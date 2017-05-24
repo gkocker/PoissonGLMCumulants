@@ -30,47 +30,47 @@ import numpy as np
 
 
 '''here, exponential'''
-def phi(g,gain):
-
-    thresh = 0.
-    r_out = gain*np.exp(g-thresh)
-
-    return r_out
-
-def phi_prime(g,gain):
-
-    thresh = 0.
-    phi_pr = gain*np.exp(g-thresh)
-
-    return phi_pr
-
-def phi_prime2(g,gain):
-
-    '''
-    second derivative of phi wrt input
-    '''
-
-    thresh = 0.
-    phi_pr2 = gain * np.exp(g-thresh)
-
-    return phi_pr2
-
-
-def phi_pop(g,gain):
-
-    '''
-
-    :param g: 2d (E, I)
-    :param gain: 2d(E, I)
-    :return:
-    '''
-
-    thresh = 0.
-    r_out = gain*np.exp(g-thresh)
-
-    # r_out = gain*(g_calc**2)
-
-    return r_out
+# def phi(g,gain):
+#
+#     thresh = 0.
+#     r_out = gain*np.exp(g-thresh)
+#
+#     return r_out
+#
+# def phi_prime(g,gain):
+#
+#     thresh = 0.
+#     phi_pr = gain*np.exp(g-thresh)
+#
+#     return phi_pr
+#
+# def phi_prime2(g,gain):
+#
+#     '''
+#     second derivative of phi wrt input
+#     '''
+#
+#     thresh = 0.
+#     phi_pr2 = gain * np.exp(g-thresh)
+#
+#     return phi_pr2
+#
+#
+# def phi_pop(g,gain):
+#
+#     '''
+#
+#     :param g: 2d (E, I)
+#     :param gain: 2d(E, I)
+#     :return:
+#     '''
+#
+#     thresh = 0.
+#     r_out = gain*np.exp(g-thresh)
+#
+#     # r_out = gain*(g_calc**2)
+#
+#     return r_out
 
 
 # ''' here, half-wave rectified quadratic '''
@@ -141,52 +141,52 @@ def phi_pop(g,gain):
 #     return r_out
 
 # # #
-# ''' here, half-wave rectified linear '''
+''' here, half-wave rectified linear '''
 
-# def phi(g, gain):
-#    '''
-#    voltage-rate transfer
-#    '''
-#
-#
-#
-#    g_calc = g*1
-#
-#    thresh = 0
-#    ind = np.where(g_calc<thresh)[0]
-#    g_calc[ind] = 0
-#
-#    r_out = gain*g_calc
-#
-#    return r_out
-#
-#
-# def phi_prime(g,gain):
-#
-#
-#
-#    g_calc = g*1
-#    ind = np.where(g_calc<0)[0]
-#
-#    phi_pr = gain*np.ones(np.shape(g))
-#    phi_pr[ind] = 0
-#
-#    return phi_pr
-#
-#
-# def phi_prime2(g,gain):
-#
-#    '''
-#    second derivative of phi wrt input
-#    '''
-#
-#    g_calc = g*1
-#    thresh = 0.
-#    ind = np.where(g_calc == thresh)
-#    phi_pr2 = np.zeros(g.shape)
-#    # phi_pr2[ind] = 1.
-#
-#    return phi_pr2
+def phi(g, gain):
+   '''
+   voltage-rate transfer
+   '''
+
+
+
+   g_calc = g*1
+
+   thresh = 0
+   ind = np.where(g_calc<thresh)[0]
+   g_calc[ind] = 0
+
+   r_out = gain*g_calc
+
+   return r_out
+
+
+def phi_prime(g,gain):
+
+
+
+   g_calc = g*1
+   ind = np.where(g_calc<0)[0]
+
+   phi_pr = gain*np.ones(np.shape(g))
+   phi_pr[ind] = 0
+
+   return phi_pr
+
+
+def phi_prime2(g,gain):
+
+   '''
+   second derivative of phi wrt input
+   '''
+
+   g_calc = g*1
+   thresh = 0.
+   ind = np.where(g_calc == thresh)
+   phi_pr2 = np.zeros(g.shape)
+   # phi_pr2[ind] = 1.
+
+   return phi_pr2
 
 
 # ''' here, concave down'''

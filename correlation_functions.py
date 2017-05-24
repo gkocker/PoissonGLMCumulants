@@ -21,7 +21,30 @@ triplet_covariance_tot
 cross_covariance_tot
 cross_spectrum
 """ 
-    
+import numpy as np
+
+def rolling_mean(x, width):
+
+    if len(x.shape) == 2:
+        N, T = x.shape
+        running_sum = np.zeros((N, T/width))
+
+        for i in range(0, T/width):
+            running_sum[:, i] = np.mean(x[:, i*width:(i+1)*width], axis=1)
+
+    elif len(x.shape) == 1:
+        T = x.shape[0]
+        running_sum = np.zeros((T / width))
+
+        for i in range(0, T / width):
+            running_sum[i] = np.mean(x[i * width:(i + 1) * width])
+
+    else:
+        raise Exception('Unknown num. dimensions of x')
+
+    return running_sum
+
+
 def bin_spiketrain(spktimes,neuronind,dt,dt_ccg,tstop,trans):
     
     import numpy as np
@@ -36,8 +59,11 @@ def bin_spiketrain(spktimes,neuronind,dt,dt_ccg,tstop,trans):
     ind_spk = np.floor(t_spk/dt_ccg)
     ind_spk = np.reshape(ind_spk,(Nspk,))
     ind_spk = ind_spk.astype(int)
-    
-    Nt = int(tstop/dt_ccg)+1    
+
+    if tstop % 2 == 0:
+        Nt = int(tstop/dt_ccg)
+    else:
+        Nt = int(tstop/dt_ccg)+1
     
     spk = np.zeros((Nt,))
     spk[ind_spk] = 1
@@ -266,7 +292,7 @@ def cross_covariance_tot(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     return xcov_tot
 
 
-def cross_spectrum(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
+def cross_spectrum(spktimes, ind1, ind2, dt, lags, tstop, trans, Ncalc):
     import numpy as np
     import math   
     from scipy import signal
@@ -275,15 +301,34 @@ def cross_spectrum(spktimes,numspikes,ind1,ind2,dt,lags,tau,tstop,trans):
     spk1 = bin_spiketrain(spktimes,ind1,dt,dt_ccg,tstop,trans)
     spk2 = bin_spiketrain(spktimes,ind2,dt,dt_ccg,tstop,trans)
     
-    spk1 = spk1[int(trans/dt):]    
-    spk2 = spk2[int(trans/dt):]     
+    spk1 = spk1[int(trans/dt_ccg):]
+    spk2 = spk2[int(trans/dt_ccg):]
     
     r1 = np.sum(spk1)/(tstop-trans)
-    r2 = np.sum(spk2)/(tstop-trans) 
-    
+    r2 = np.sum(spk2)/(tstop-trans)
+
     spk1 -= r1
-    spk2 -= r2    
-    
-    freq, cross_spec = signal.csd(spk1, spk2, fs=1./dt_ccg, window='bartlett', nperseg = 256, scaling = 'density', return_onesided=False)
-    
-    return freq, cross_spec/(dt_ccg**2)
+    spk2 -= r2
+
+    ''' 0-pad to nearest power of 2 '''
+    # power2 = np.ceil(np.log2(len(spk1)))
+    # Npad = int(2**power2 - len(spk1))
+    # if Npad % 2 == 0:
+    #     spk1 = np.pad(spk1, pad_width=(Npad/2, Npad/2), mode='constant')
+    #     spk2 = np.pad(spk2, pad_width=(Npad/2, Npad/2), mode='constant')
+    # else:
+    #     spk1 = np.pad(spk1, pad_width=(Npad/2, Npad/2+1), mode='constant')
+    #     spk2 = np.pad(spk2, pad_width=(Npad/2, Npad/2+1), mode='constant')
+    #
+    # Nfreq = len(spk1)
+    spk1 -= np.mean(spk1)
+    spk2 -= np.mean(spk2)
+
+    freq, cross_spec = signal.csd(spk1, spk2, fs=1./dt_ccg, window='bartlett', nperseg=Ncalc, scaling='density', return_onesided=False, detrend=False)
+    # cross_spec = np.fft.fft(spk1) * np.fft.fft(spk2).conj() / ((Nfreq))
+    # freq = np.fft.fftfreq(Nfreq, d=dt_ccg)
+
+    cross_spec = np.fft.fftshift(cross_spec)
+    freq = np.fft.fftshift(freq)
+
+    return freq, cross_spec
