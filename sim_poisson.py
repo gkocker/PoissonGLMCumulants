@@ -129,45 +129,14 @@ if __name__ == '__main__':
 
     W *= 6.
 
-    # spktimes, g_vec, s_vec = sim_poisson(W, tstop, trans, dt)
-    #
-    # # compute some statistics
-    # ind_include = range(Ne)  # indices of E neurons
-    # spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
-    # dt_ccg = 1.  # ms
-    # lags = np.arange(-10.*tau, 10.*tau, dt_ccg)
-    # pop_2point = auto_covariance_pop(spktimes, ind_include, len(spktimes), dt, lags, tau, tstop, trans)
-    #
-    #
-    # # compute cross-spectral matrix
-    #
-    # Nfreq = 512
-    #
-    # C2 = np.zeros((N, N, Nfreq), dtype='complex128')
-    # C2_t = np.zeros((N, N, Nfreq))
-    #
-    # for i in range(N):
-    #     for j in range(N):
-    #         freq, C2[i, j, :] = cross_spectrum(spktimes, i, j, dt, lags, tstop, trans, Nfreq)
-    #         # C2_t[i, j, :] = cross_covariance_spk(spktimes, len(spktimes), i, j, dt, lags, tau, tstop, trans)
+    spktimes, g_vec, s_vec = sim_poisson(W, tstop, trans, dt)
 
+    # compute some statistics
+    ind_include = range(Ne)  # indices of E neurons
+    spk_Epop = bin_pop_spiketrain(spktimes, dt, 1, tstop, trans, ind_include)
     dt_ccg = 1.  # ms
     lags = np.arange(-10.*tau, 10.*tau, dt_ccg)
+    pop_2point = auto_covariance_pop(spktimes, ind_include, len(spktimes), dt, lags, tau, tstop, trans)
 
-    phi_r = rates_ss(W)
-
-    C2f, w = two_point_function_fourier_lags(W, lags)
-    C2 = two_point_function_lags(W, lags)
-
-    dw = w[1]-w[0]
-
-    Delta = np.zeros((N, N, w.shape[0]), dtype='complex128')
-    Chat = np.zeros((N, N, w.shape[0]), dtype='complex128')
-    Deltahat = np.zeros((N, N, w.shape[0]), dtype='complex128')
-
-    ind0 = np.where(lags == 0.)[0][0]
-
-    for i, o in enumerate(w):
-        Delta[:, :, i] = linear_response_fun(o, W, phi_r)
-        Chat[:, :, i] = Delta
-        Deltahat[:, :, i] = np.dot(C2f[:, :, i], np.linalg.inv(C2[:, :, ind0]))
+    plt.figure()
+    plt.plot(lags, pop_2point, 'k', linewidth=1)
