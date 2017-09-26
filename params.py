@@ -11,10 +11,10 @@ import numpy as np
 
 class params:
     def __init__(self):
-        self.Ne = 20
-        self.Ni = 0  # 40
+        self.Ne = 200
+        self.Ni = 40
 
-        self.pEE = .5
+        self.pEE = .2
         self.pEI = .5
         self.pIE = .5
         self.pII = .5
@@ -32,26 +32,15 @@ class params:
             self.weightEI = 0
             self.weightII = 0
 
-        self.N_ff = 0  # 50 for coding fig
-        self.Ne += self.N_ff
         self.N = self.Ne+self.Ni
 
         self.tau = 10  # time constant
         self.gain = .1 # gain of threshold-linear input-output function
         self.b = np.zeros((self.N,))
 
-        self.b[self.N_ff:] = 0.1
-        # self.b[self.N_ff:] = -1.5
-        # self.b[self.Ne:] = -2. # -1.5 for balanced
+        self.b[:] = 0.1
 
-        # self.b[:self.N_ff/2] = 0.1
-        # self.b[self.N_ff/2:self.N_ff] = 0.1
-
-        # self.b[self.N_ff:self.Ne] = np.sqrt(.1)  # if E cells have threshold-linear transfer
-        # self.b[self.Ne:] = 0.2
-
-        #  triplet plasticity parameters
-        # self.b = .1*np.ones((self.N,)) # external input
+        #  triplet plasticity parameters, gjiorjieva et al pnas 2011
         self.A3plus = 6.5e-3
         self.A2minus = 7.1e-3
         self.tauplus = 17 # msec
