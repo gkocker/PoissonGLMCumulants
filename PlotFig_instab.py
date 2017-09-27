@@ -53,7 +53,7 @@ weightIE = par.weightIE
 weightII = par.weightII
 
 Ntrials = 1
-plot_raster = True
+plot_raster = False
 
 if plot_raster:
     tstop = 600. * tau

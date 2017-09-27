@@ -75,7 +75,7 @@ def bin_pop_spiketrain(spktimes,dt,dt_ccg,tstop,trans,ind_include):
     
     import numpy as np
     
-    Nt = int(tstop/dt_ccg)+1
+    Nt = int(tstop/dt_ccg)
     
     spk_pop = np.zeros((Nt,))    
     
