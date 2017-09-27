@@ -7,7 +7,7 @@ That paper presents the rules for constructing and interpreting Feynman diagrams
 The code here operates in the temporal Fourier domain in order to avoid a number of time integrals. The Feynman rules in the Fourier domain are the same as those in the temporal domain (see the paper) except for the following:
 1) Vertices do not carry time variables.
 2) Every edge has an associated frequency variable (the argument of the propagator or interaction function). External vertices carry the frequency variable of their input edge, while internal vertices do not carry a frequency variable.
-3) The factor for an internal vertex with a outgoing and b incoming edges is multiplied by: $(1/2*pi)^b * 2*\pi*\delta(\sum_b \omega_b - \sum_a \omega_a)$. The delta function conserves momentum; the sums over a and b are over the frequencies of all incoming and outgoing edges for the vertex in question. 
+3) The factor for an internal vertex with a outgoing and b incoming edges is multiplied by: $(1/(2*\pi))^b * 2*\pi*\delta(\sum_b \omega_b - \sum_a \omega_a)$. The delta function conserves momentum; the sums over a and b are over the frequencies of all incoming and outgoing edges for the vertex in question. 
 
 As for the time-domain rules, sum over all neuron indices and integrate over all internal frequencies in order to compute the cumulant.
 
