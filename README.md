@@ -11,4 +11,4 @@ The code here operates in the temporal Fourier domain in order to avoid a number
 
 As for the time-domain rules, sum over all neuron indices and integrate over all internal frequencies in order to compute the cumulant.
 
-The file PlotFig_instab.py is a script to reproduce Fig. 14 of the paper; PlotFig_instab_quadratic.py reproduces Fig. 15. PlotFig_instab_exponential.py (coming soon) reproduces Fig. 18. Before running them, make sure that the correct transfer function is uncommented in phi.py, and make sure that the baseline drive ("b" in params.py) is set correctly. Also set the save directory in the PlotFig script. 
+The file PlotFig_instab.py is a script to reproduce panels from Fig. 14 of the paper; PlotFig_instab_quadratic.py reproduces panels from Fig. 15. PlotFig_instab_exponential.py (coming soon) reproduces panels from Fig. 18. Before running them, make sure that the correct transfer function is uncommented in phi.py, and make sure that the baseline drive ("b" in params.py) is set correctly. Also set the save directory in the PlotFig script. 
