@@ -19,7 +19,7 @@ class params:
         self.pIE = .5
         self.pII = .5
         if self.Ne > 0:
-            self.WmaxE = 1.5/(self.Ne*self.pEE)
+            self.WmaxE = 1./(self.Ne*self.pEE)
             self.weightEE = self.WmaxE  # have a WmaxE parameter from plasticity
             self.weightIE = 1./(self.Ne*self.pIE)
         else:
