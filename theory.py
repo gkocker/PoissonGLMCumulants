@@ -119,10 +119,11 @@ def two_point_function_fourier(W):
     Nw = w.size
 
     C2f = np.zeros((N,N,Nw), dtype=complex)  # fourier transform of stationary cross-covariance matrix
-    
+
+    phi_r = np.diag(phi_r)
     for o in range(Nw):
         F1 = linear_response_fun(w[o], W, phi_r)
-        C2f[:, :, o] = np.dot(phi_r*F1, F1.conj().T)
+        C2f[:, :, o] = F1.dot(phi_r).dot(F1.conj().T)
 #        
     return C2f, w
 
